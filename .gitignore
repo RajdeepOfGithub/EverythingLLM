@@ -38,3 +38,7 @@ coverage/
 
 # Private docs (kept local only)
 Docs/
+
+# Claude instructions (kept local only)
+CLAUDE.md
+**/CLAUDE.md
