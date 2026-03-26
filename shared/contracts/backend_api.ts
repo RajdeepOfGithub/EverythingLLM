@@ -52,23 +52,57 @@ export interface SaveHardwareProfileResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Model Recommender — Sliders + Stack
+// ---------------------------------------------------------------------------
+
+// Slider preferences per task (each value is 1–5)
+export interface SliderPreferences {
+  quality: number;       // Model output accuracy (HumanEval / MMLU / MT-Bench score weight)
+  speed: number;         // Tokens/sec — computed dynamically against user's hardware
+  fit: number;           // How well the model fits in available VRAM
+  context: number;       // Max context length supported by the model
+}
+
+export type UseCase =
+  | "coding"
+  | "documentation"
+  | "chat"
+  | "reasoning"
+  | "explanation";
+
+// A single task entry in the multi-role model stack
+export interface ModelStackEntry {
+  use_case: UseCase;
+  hf_model_id: string;                               // Best pick for this task
+  model_name: string;                                // Human-readable name
+  sliders: SliderPreferences;                        // User's slider config for this task
+  vram_required_gb: number;                          // VRAM this model needs at chosen quant
+  can_run_simultaneously: boolean;                   // Whether all stack models fit in VRAM together
+}
+
+// ---------------------------------------------------------------------------
 // Models (saved selections)
 // ---------------------------------------------------------------------------
 
-// POST /models/save
-export interface SaveModelRequest {
-  hf_model_id: string;                               // e.g. "meta-llama/Meta-Llama-3-8B-Instruct"
+// POST /models/save — saves the full multi-role model stack
+export interface SaveModelStackRequest {
+  stack: ModelStackEntry[];
+  total_vram_required_gb: number;
+  simultaneous_fit: boolean;                         // true = all models fit in VRAM at once
 }
-export interface SaveModelResponse {
+export interface SaveModelStackResponse {
   saved: boolean;
+  stack_id: string;
 }
 
-// GET /models/saved
-export interface SavedModel {
-  hf_model_id: string;
-  saved_at: string;                                   // ISO 8601
+// GET /models/saved — returns the user's saved stack
+export interface SavedModelStack {
+  stack_id: string;
+  stack: ModelStackEntry[];
+  simultaneous_fit: boolean;
+  saved_at: string;                                  // ISO 8601
 }
-export type SavedModelsResponse = SavedModel[];
+export type SavedModelStackResponse = SavedModelStack | null;
 
 // ---------------------------------------------------------------------------
 // Benchmarks
