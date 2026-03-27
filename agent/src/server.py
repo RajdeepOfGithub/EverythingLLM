@@ -1,19 +1,29 @@
 """
 llama.cpp server lifecycle management.
 Handles launching, health-checking, and stopping llama-server processes.
+Phase 1: scaffold only — real implementation in Phase 4.
 """
 
-
-def start_server(model_path: str, port: int = 8080, **kwargs) -> dict:
-    # TODO: launch llama-server subprocess with given config
-    pass
+import subprocess
+from typing import Optional
 
 
-def stop_server(port: int) -> None:
-    # TODO: terminate the llama-server process on given port
-    pass
+class LlamaCppServer:
+    def __init__(self):
+        self.process: Optional[subprocess.Popen] = None
+        self.session_id: Optional[str] = None
+
+    def start(self, config: dict) -> str:
+        """Launch llama-server subprocess. NOT YET IMPLEMENTED — Phase 4."""
+        raise NotImplementedError("llama.cpp integration coming in Phase 4")
+
+    def stop(self, session_id: str) -> bool:
+        """Stop a running session. NOT YET IMPLEMENTED — Phase 4."""
+        raise NotImplementedError("llama.cpp integration coming in Phase 4")
+
+    def get_status(self, session_id: str) -> str:
+        """Get current session status. NOT YET IMPLEMENTED — Phase 4."""
+        raise NotImplementedError("llama.cpp integration coming in Phase 4")
 
 
-def check_health(port: int) -> bool:
-    # TODO: poll /health endpoint, return True if ready
-    pass
+server_manager = LlamaCppServer()
