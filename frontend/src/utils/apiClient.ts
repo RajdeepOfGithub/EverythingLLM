@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 const TOKEN_KEY = 'everythingllm_token'
 

@@ -10,7 +10,7 @@ export type {
   SpeculativeTickEvent,
   AgentWebSocketEvent,
   BenchmarkStatus,
-} from '../../../../shared/contracts/local_agent_api'
+} from '../../../shared/contracts/local_agent_api'
 
 export type {
   AuthValidateRequest,
@@ -34,4 +34,4 @@ export type {
   LeaderboardResponse,
   DraftModelCandidate,
   SpeculativeRecommendationsResponse,
-} from '../../../../shared/contracts/backend_api'
+} from '../../../shared/contracts/backend_api'
