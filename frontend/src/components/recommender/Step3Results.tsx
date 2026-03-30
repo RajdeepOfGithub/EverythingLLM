@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Zap } from 'lucide-react'
 import { useRecommenderStore } from '../../store/recommenderStore'
+import { post } from '../../utils/apiClient'
+import { SaveModelStackResponse } from '../../../../shared/contracts/backend_api'
 import VRAMBar from './VRAMBar'
 import './recommender.css'
 
@@ -21,10 +24,40 @@ const cardVariants = {
 }
 
 export default function Step3Results() {
-  const { results, hardware, setStep } = useRecommenderStore()
+  const { results, hardware, useCase, sliders, setStep } = useRecommenderStore()
   const best = results.find(r => r.is_best_pick)
   const rest = results.filter(r => !r.is_best_pick)
   const vramTotal = hardware?.gpu.vram_total_gb ?? null
+  const [saving, setSaving] = useState(false)
+  const [savedId, setSavedId] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  async function handleSaveStack() {
+    if (!useCase || !best) return
+    setSaving(true)
+    setSaveError(null)
+    const totalVram = results.reduce((sum, r) => sum + r.vram_required_gb, 0)
+    const simultaneousFit = vramTotal !== null && totalVram <= vramTotal
+    try {
+      const resp = await post<SaveModelStackResponse>('/models/save', {
+        stack: results.map(r => ({
+          use_case: useCase,
+          hf_model_id: r.hf_model_id,
+          model_name: r.model_name,
+          sliders,
+          vram_required_gb: r.vram_required_gb,
+          can_run_simultaneously: simultaneousFit,
+        })),
+        total_vram_required_gb: totalVram,
+        simultaneous_fit: simultaneousFit,
+      })
+      setSavedId(resp.stack_id)
+    } catch {
+      setSaveError('Failed to save. Try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="step-container">
@@ -112,13 +145,20 @@ export default function Step3Results() {
         <button className="back-button" onClick={() => setStep(2, -1)}>
           ← Back
         </button>
-        <motion.button
-          className="cta-button"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          Save Stack →
-        </motion.button>
+        {savedId ? (
+          <span className="save-success">&#10003; Saved</span>
+        ) : (
+          <motion.button
+            className="cta-button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleSaveStack}
+            disabled={saving || !best}
+          >
+            {saving ? 'Saving...' : 'Save Stack →'}
+          </motion.button>
+        )}
+        {saveError && <span className="save-error">{saveError}</span>}
       </div>
     </div>
   )

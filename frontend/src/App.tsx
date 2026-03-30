@@ -16,6 +16,14 @@ const App: React.FC = () => (
   <Routes>
     <Route path="/login" element={<LoginPage />} />
     <Route
+      path="/models"
+      element={
+        <RequireAuth>
+          <ModelRecommenderPage />
+        </RequireAuth>
+      }
+    />
+    <Route
       path="/"
       element={
         <RequireAuth>
@@ -24,7 +32,6 @@ const App: React.FC = () => (
       }
     >
       <Route index element={<Navigate to="/models" replace />} />
-      <Route path="models" element={<ModelRecommenderPage />} />
       <Route path="hardware" element={<HardwarePlannerPage />} />
       <Route path="benchmark" element={<BenchmarkerPage />} />
       <Route path="speculative" element={<SpeculativeDecodingPage />} />
