@@ -1,0 +1,135 @@
+/* ── Page shell ─────────────────────────────────────────────────────── */
+.recommender-page {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-ui);
+  position: relative;
+}
+
+/* CRT scanline overlay */
+.recommender-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ── Nav ─────────────────────────────────────────────────────────────── */
+.rec-nav {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 48px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(5, 5, 0, 0.97);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  gap: 0;
+}
+
+.rec-nav-brand {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--text);
+  letter-spacing: 0.05em;
+  flex: 1;
+  text-shadow: var(--glow-yellow);
+}
+
+.rec-nav-right { flex: 1; }
+
+/* Step indicator */
+.rec-step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rec-step-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rec-step-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: all 0.2s ease;
+}
+
+.rec-step-pill.active .rec-step-dot {
+  background: var(--text);
+  box-shadow: var(--glow-yellow);
+}
+
+.rec-step-pill.done .rec-step-dot {
+  background: var(--text-dim);
+}
+
+.rec-step-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.rec-step-pill.active .rec-step-label {
+  color: var(--text);
+}
+
+/* terminal > prefix on active step */
+.rec-step-pill.active .rec-step-label::before {
+  content: '> ';
+  color: var(--text);
+}
+
+.rec-step-pill.done .rec-step-label {
+  color: var(--text-dim);
+}
+
+.rec-step-pill.done .rec-step-label::before {
+  content: '✓ ';
+  color: var(--green);
+}
+
+.rec-step-line {
+  width: 24px;
+  height: 1px;
+  background: var(--border);
+  transition: background 0.3s ease;
+}
+
+.rec-step-line.done {
+  background: var(--text-dim);
+}
+
+/* ── Content ─────────────────────────────────────────────────────────── */
+.recommender-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 80px 80px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.rec-step-wrapper { width: 100%; }
