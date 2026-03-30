@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  /* Core palette */
+  --bg: #050500;
+  --surface: rgba(255, 230, 0, 0.04);
+  --surface-hover: rgba(255, 230, 0, 0.08);
+  --surface-active: rgba(255, 230, 0, 0.12);
+  --border: rgba(255, 230, 0, 0.18);
+  --border-active: #FFE600;
+
+  /* Text */
+  --text: #F0F0F0;
+  --text-dim: #A0A0A0;
+  --muted: #505050;
+
+  /* Accents — keep semantic colors but yellow-shifted */
+  --violet: #FFE600;        /* primary accent = yellow */
+  --blue: #00E5FF;          /* speed / TPS = cyan */
+  --green: #00FF88;         /* VRAM fit = terminal green */
+  --orange: #FF8C00;        /* context = amber */
+  --red: #FF3300;           /* overflow = red */
+
+  /* Typography */
+  --font-ui: 'Space Mono', monospace;
+  --font-display: 'VT323', monospace;
+  --font-mono: 'Space Mono', monospace;
+
+  /* Shape — sharp, boxy, retro */
+  --radius-card: 4px;
+  --radius-sm: 2px;
+
+  /* Glow */
+  --glow-yellow: 0 0 12px rgba(255, 230, 0, 0.4), 0 0 40px rgba(255, 230, 0, 0.1);
+  --glow-yellow-strong: 0 0 20px rgba(255, 230, 0, 0.6), 0 0 60px rgba(255, 230, 0, 0.2);
+}
