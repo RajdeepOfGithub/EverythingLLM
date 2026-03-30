@@ -16,7 +16,7 @@ Each module feeds into the next, creating a seamless end-to-end workflow.
 
 | Module | What it does |
 |---|---|
-| **Model Selector** | Search HuggingFace Hub, filter by use case, auto-fill specs downstream |
+| **Model Recommender** | Use case selection + priority sliders (Quality/Speed/Fit/Context) + hardware-aware scoring → ranked model list |
 | **Hardware Planner** | VRAM/RAM calculator, quantization fit grid, buy-vs-rent cost estimate |
 | **Throughput Benchmarker** | Runs live llama.cpp sweeps on your machine, streams real-time heatmaps |
 | **Speculative Decoding Advisor** | Recommends draft models, benchmarks target×draft pairs, shows speedup |
@@ -44,7 +44,7 @@ The **local agent** runs as a background process on your machine and is what mak
 
 ## Tech Stack
 
-**Frontend:** React 19, TypeScript, Vite, custom CSS
+**Frontend:** React 19, TypeScript, Vite, Framer Motion, Zustand, custom CSS
 
 **Local Agent:** Python 3.11+, FastAPI, WebSockets, uvicorn
 
@@ -58,17 +58,23 @@ The **local agent** runs as a background process on your machine and is what mak
 
 ## Project Status
 
-Currently in active development — **Phase 1 (Backbone)** in progress.
-
 | Phase | Status |
 |---|---|
-| Phase 1: Backbone (infra, auth, connections) | 🔄 In progress |
-| Phase 2: Model Selector | ⏳ Upcoming |
+| Phase 1: Backbone (infra, auth, frontend↔agent↔backend) | ✅ Complete |
+| Phase 2: Model Recommender (wizard, sliders, hardware-aware scoring) | 🔄 In progress |
 | Phase 3: Hardware Planner | ⏳ Upcoming |
 | Phase 4: Throughput Benchmarker | ⏳ Upcoming |
 | Phase 5: Speculative Decoding Advisor | ⏳ Upcoming |
 | Phase 6: Dashboard + Community | ⏳ Upcoming |
 | Phase 7: Polish + Desktop App (Tauri) | ⏳ Upcoming |
+
+### Live Infrastructure (Phase 1)
+
+| Resource | Value |
+|---|---|
+| Frontend (CloudFront) | `https://d1z4517js5cwl9.cloudfront.net` |
+| Backend (EC2) | `http://100.55.73.90` |
+| Auth (Cognito) | `us-east-1_JTfmCRqIP` |
 
 ---
 
@@ -86,6 +92,29 @@ EverythingLLM/
 
 ---
 
+## Getting Started
+
+### Frontend
+```bash
+cd frontend && npm install && npm run dev
+```
+
+### Local Agent
+```bash
+cd agent && pip install -r requirements.txt && python main.py
+# Runs on http://localhost:7878
+```
+
+### Backend (local dev)
+```bash
+cd backend && pip install -r requirements.txt
+python -m alembic upgrade head
+python main.py
+# Runs on http://localhost:8000
+```
+
+---
+
 ## Contributing
 
-This project is in early development. Contribution guidelines will be added once the backbone is complete.
+This project is in active development. Contribution guidelines will be added once the core modules are complete.
