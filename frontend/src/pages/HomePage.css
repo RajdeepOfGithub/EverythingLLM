@@ -12,9 +12,21 @@
   100% { transform: translateY(100vh); opacity: 0; }
 }
 
+/* ── Neural net canvas background ────────────────────────────────────────── */
+
+.neural-net-bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* ── Page wrapper ─────────────────────────────────────────────────────────── */
 
 .home-page {
+  position: relative;
   min-height: 100vh;
   background: var(--bg);
   font-family: var(--font-ui);
@@ -95,6 +107,7 @@
 
 .hero-section {
   position: relative;
+  z-index: 1;
   height: 100vh;
   min-height: 600px;
   display: flex;
@@ -103,18 +116,19 @@
   overflow: hidden;
 }
 
-/* Dot grid background */
+/* Dot grid background — opacity reduced so it doesn't clash with neural net bg */
 .hero-grid-bg {
   position: absolute;
   inset: -40px;
   background-image: radial-gradient(
     circle,
-    rgba(255, 230, 0, 0.04) 1px,
+    rgba(255, 230, 0, 0.02) 1px,
     transparent 1px
   );
   background-size: 40px 40px;
   animation: grid-drift 10s linear infinite;
   pointer-events: none;
+  opacity: 0.4;
 }
 
 /* Radial vignette */
@@ -339,6 +353,8 @@
 /* ── Pipeline section ─────────────────────────────────────────────────────── */
 
 .pipeline-section {
+  position: relative;
+  z-index: 1;
   padding: 100px 48px;
   max-width: 1400px;
   margin: 0 auto;
@@ -519,6 +535,8 @@
 /* ── Modules section ──────────────────────────────────────────────────────── */
 
 .modules-section {
+  position: relative;
+  z-index: 1;
   padding: 80px 48px 100px;
   max-width: 1000px;
   margin: 0 auto;
@@ -593,6 +611,8 @@
 /* ── CTA section ──────────────────────────────────────────────────────────── */
 
 .cta-section {
+  position: relative;
+  z-index: 1;
   background: var(--surface);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
@@ -650,6 +670,8 @@
 /* ── Footer ───────────────────────────────────────────────────────────────── */
 
 .home-footer {
+  position: relative;
+  z-index: 1;
   height: 60px;
   border-top: 1px solid var(--border);
   display: flex;
