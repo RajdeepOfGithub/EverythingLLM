@@ -16,7 +16,7 @@ Each module feeds into the next, creating a seamless end-to-end workflow.
 
 | Module | What it does | Status |
 |---|---|---|
-| **Model Recommender** | Use case selection + quality/speed/fit/context sliders + hardware-aware scoring → ranked model list | ✅ Live |
+| **Model Recommender** | Use case selection + priority sliders (Quality/Speed/Fit/Context) + hardware-aware scoring → ranked model list | ✅ Live |
 | **Hardware Planner** | VRAM/RAM calculator, quantization fit grid, buy-vs-rent cost estimate | Coming soon |
 | **Throughput Benchmarker** | Runs live llama.cpp sweeps on your machine, streams real-time heatmaps | Coming soon |
 | **Speculative Decoding Advisor** | Recommends draft models, benchmarks target×draft pairs, animated concept explainer | Coming soon |
@@ -61,19 +61,43 @@ The **local agent** runs as a background process on your machine — no data lea
 | Phase | Status |
 |---|---|
 | Phase 1: Backbone (infra, auth, frontend↔agent↔backend) | ✅ Complete |
-| Phase 2: Model Recommender | 🔄 In progress |
+| Phase 2: Model Recommender (wizard, sliders, hardware-aware scoring) | ✅ Complete |
 | Phase 3: Hardware Planner | ⏳ Upcoming |
 | Phase 4: Throughput Benchmarker | ⏳ Upcoming |
 | Phase 5: Speculative Decoding Advisor | ⏳ Upcoming |
 | Phase 6: Dashboard + Community | ⏳ Upcoming |
 | Phase 7: Polish + Desktop App (Tauri) | ⏳ Upcoming |
 
-**Phase 2 progress:**
-- 3-step wizard: use case selection → preference sliders → ranked model results
-- Hardware-aware scoring with VRAM fit check via local agent
-- Retro terminal theme: VT323 + Space Mono, `#FFE600` accents, CRT scanlines
-- Public landing page with typewriter hero and animated pipeline overview
-- Segmented VRAM bar, AnimatePresence step transitions, staggered card reveals
+### Live Infrastructure (Phase 1)
+
+| Resource | Value |
+|---|---|
+| Frontend (CloudFront) | `https://d1z4517js5cwl9.cloudfront.net` |
+| Backend (EC2) | `http://100.55.73.90` |
+| Auth (Cognito) | `us-east-1_JTfmCRqIP` |
+
+---
+
+## Getting Started
+
+### Frontend
+```bash
+cd frontend && npm install && npm run dev
+```
+
+### Local Agent
+```bash
+cd agent && pip install -r requirements.txt && python main.py
+# Runs on http://localhost:7878
+```
+
+### Backend (local dev)
+```bash
+cd backend && pip install -r requirements.txt
+python -m alembic upgrade head
+python main.py
+# Runs on http://localhost:8000
+```
 
 ---
 
@@ -93,4 +117,4 @@ EverythingLLM/
 
 ## Contributing
 
-This project is in early development. Contribution guidelines will be added once the core modules are complete.
+This project is in active development. Contribution guidelines will be added once the core modules are complete.
