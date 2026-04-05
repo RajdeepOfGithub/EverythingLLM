@@ -718,6 +718,101 @@
   color: var(--text);
 }
 
+/* ── Walkthrough section ──────────────────────────────────────────────────── */
+
+.walkthrough-section {
+  position: relative;
+  z-index: 1;
+  padding: 100px 48px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.walkthrough-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.walkthrough-entry {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  padding: 72px 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.walkthrough-entry:last-child {
+  border-bottom: none;
+}
+
+.walkthrough-entry--reverse .walkthrough-text {
+  order: 2;
+}
+
+.walkthrough-entry--reverse .walkthrough-anim-panel {
+  order: 1;
+}
+
+.walkthrough-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.walkthrough-accent {
+  width: 40px;
+  height: 2px;
+  border-radius: 1px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.walkthrough-phase {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.walkthrough-title {
+  font-family: var(--font-mono);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 20px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.walkthrough-desc {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.walkthrough-anim-panel {
+  background: rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
 /* ── Mobile ───────────────────────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
@@ -780,6 +875,28 @@
 
   .section-rule-line--long {
     width: 60px;
+  }
+
+  .walkthrough-section {
+    padding: 64px 24px;
+  }
+
+  .walkthrough-entry {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 48px 0;
+  }
+
+  .walkthrough-entry--reverse .walkthrough-text {
+    order: 0;
+  }
+
+  .walkthrough-entry--reverse .walkthrough-anim-panel {
+    order: 0;
+  }
+
+  .walkthrough-title {
+    font-size: 24px;
   }
 }
 

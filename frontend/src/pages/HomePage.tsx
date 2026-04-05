@@ -13,6 +13,10 @@ import MiniRecommenderAnim from '../components/animations/MiniRecommenderAnim'
 import MiniHardwareAnim from '../components/animations/MiniHardwareAnim'
 import MiniBenchmarkerAnim from '../components/animations/MiniBenchmarkerAnim'
 import MiniSpeculativeAnim from '../components/animations/MiniSpeculativeAnim'
+import ModelRecommenderExplainer from '../components/animations/ModelRecommenderExplainer'
+import HardwarePlannerExplainer from '../components/animations/HardwarePlannerExplainer'
+import BenchmarkerExplainer from '../components/animations/BenchmarkerExplainer'
+import SpeculativeDecodingExplainer from '../components/animations/SpeculativeDecodingExplainer'
 import './HomePage.css'
 
 // ── Data ──────────────────────────────────────────────────────────────────────
@@ -98,6 +102,37 @@ const MODULES = [
     MiniAnim: MiniSpeculativeAnim,
   },
 ]
+
+const WALKTHROUGH = [
+  {
+    phase: 'Phase 01',
+    title: 'Model Recommender',
+    desc: 'Tell us your use case and priorities. The scoring engine weighs Quality, Speed, VRAM fit, and Context Length against your actual hardware — then ranks every model accordingly.',
+    Explainer: ModelRecommenderExplainer,
+    color: 'var(--violet)',
+  },
+  {
+    phase: 'Phase 02',
+    title: 'Hardware Planner',
+    desc: 'Input your model and target quant. See exact VRAM breakdown: weights, KV cache, overhead. Instant verdict — FITS, TIGHT, or EXCEEDS — plus cloud buy-vs-rent pricing when you need it.',
+    Explainer: HardwarePlannerExplainer,
+    color: 'var(--blue)',
+  },
+  {
+    phase: 'Phase 03',
+    title: 'Throughput Benchmarker',
+    desc: 'Connect your local agent and run real llama.cpp parameter sweeps. Batch size vs thread count vs TPS — visualized live on your hardware as the sweep runs.',
+    Explainer: BenchmarkerExplainer,
+    color: 'var(--green)',
+  },
+  {
+    phase: 'Phase 04',
+    title: 'Speculative Decoding',
+    desc: 'Find the optimal draft model for your target. Live benchmarking shows the latency delta. The advisor picks the pairing that gives you the best tokens-per-second gain.',
+    Explainer: SpeculativeDecodingExplainer,
+    color: 'var(--orange)',
+  },
+] as const
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -466,6 +501,90 @@ function ModulesSection() {
   )
 }
 
+interface WalkthroughEntryProps {
+  entry: (typeof WALKTHROUGH)[number]
+  index: number
+}
+
+function WalkthroughEntry({ entry, index }: WalkthroughEntryProps) {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-100px' })
+  const isReverse = index % 2 !== 0
+  const { Explainer } = entry
+
+  const easing = [0.4, 0, 0.2, 1] as [number, number, number, number]
+
+  const textVariants = {
+    hidden: { opacity: 0, x: isReverse ? 48 : -48 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.65, ease: easing },
+    },
+  }
+
+  const panelVariants = {
+    hidden: { opacity: 0, scale: 0.96 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.65, delay: 0.1, ease: easing },
+    },
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={`walkthrough-entry${isReverse ? ' walkthrough-entry--reverse' : ''}`}
+    >
+      <motion.div
+        className="walkthrough-text"
+        initial="hidden"
+        animate={inView ? 'visible' : 'hidden'}
+        variants={textVariants}
+      >
+        <div
+          className="walkthrough-accent"
+          style={{ background: entry.color }}
+        />
+        <div className="walkthrough-phase">{entry.phase}</div>
+        <h3 className="walkthrough-title">{entry.title}</h3>
+        <p className="walkthrough-desc">{entry.desc}</p>
+      </motion.div>
+
+      <motion.div
+        className="walkthrough-anim-panel"
+        initial="hidden"
+        animate={inView ? 'visible' : 'hidden'}
+        variants={panelVariants}
+        style={{ borderColor: `color-mix(in srgb, ${entry.color} 30%, var(--border))` }}
+      >
+        <Explainer />
+      </motion.div>
+    </div>
+  )
+}
+
+function WalkthroughSection() {
+  return (
+    <section className="walkthrough-section">
+      <div className="section-header">
+        <div className="section-rule">
+          <span className="section-rule-line" />
+          <span className="section-title">HOW IT WORKS</span>
+          <span className="section-rule-line section-rule-line--long" />
+        </div>
+      </div>
+
+      <div className="walkthrough-entries">
+        {WALKTHROUGH.map((entry, i) => (
+          <WalkthroughEntry key={entry.title} entry={entry} index={i} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function CtaSection() {
   const navigate = useNavigate()
 
@@ -527,6 +646,7 @@ export default function HomePage() {
         <HeroSection />
         <PipelineSection />
         <ModulesSection />
+        <WalkthroughSection />
         <CtaSection />
         <HomeFooter />
       </div>
