@@ -28,6 +28,21 @@ def health():
     return {"status": "ok"}
 
 
+@router.get("/capabilities")
+def get_capabilities():
+    """Returns what the agent can actually do on this machine."""
+    try:
+        import llama_cpp  # noqa: F401
+        llama_cpp_available = True
+    except ImportError:
+        llama_cpp_available = False
+
+    return {
+        "llama_cpp_available": llama_cpp_available,
+        "real_benchmark": llama_cpp_available,
+    }
+
+
 @router.get("/hardware")
 def get_hardware():
     return get_full_hardware_profile()

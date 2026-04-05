@@ -276,6 +276,7 @@ const BenchmarkerPage: React.FC = () => {
   const [agentOnline, setAgentOnline] = useState(false)
   const [models, setModels] = useState<ModelInfo[]>([])
   const [selectedModel, setSelectedModel] = useState<string>('')
+  const [simMode, setSimMode] = useState(false)
 
   // Config
   const [config, setConfig] = useState<BenchConfig>({
@@ -298,6 +299,19 @@ const BenchmarkerPage: React.FC = () => {
   const wsRef = useRef<WebSocket | null>(null)
   const startTimeRef = useRef<number>(0)
   const healthIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // ---- Capabilities check ----
+  const checkCapabilities = useCallback(async () => {
+    try {
+      const res = await fetch(`${AGENT_BASE_URL}/capabilities`, { signal: AbortSignal.timeout(2000) })
+      if (res.ok) {
+        const data = await res.json()
+        setSimMode(!data.llama_cpp_available)
+      }
+    } catch {
+      setSimMode(true) // assume sim if can't reach
+    }
+  }, [])
 
   // ---- Health polling ----
   const pollHealth = useCallback(async () => {
@@ -323,6 +337,9 @@ const BenchmarkerPage: React.FC = () => {
         if (data.length > 0 && !selectedModel) {
           setSelectedModel(data[0].path)
         }
+        if (data.length === 0) {
+          setSimMode(true)
+        }
       }
     } catch {
       setModels([])
@@ -332,6 +349,7 @@ const BenchmarkerPage: React.FC = () => {
   useEffect(() => {
     pollHealth()
     loadModels()
+    checkCapabilities()
     healthIntervalRef.current = setInterval(pollHealth, 5000)
     return () => {
       if (healthIntervalRef.current) clearInterval(healthIntervalRef.current)
@@ -495,6 +513,21 @@ const BenchmarkerPage: React.FC = () => {
         <div className="bench-layout">
           {/* ── Left: Config panel ── */}
           <div className="bench-config-panel">
+            {/* Simulation mode banner */}
+            {simMode && status !== 'completed' && (
+              <motion.div
+                className="bench-sim-banner"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <span className="bench-sim-icon">⚠</span>
+                <div>
+                  <div className="bench-sim-title">SIMULATION MODE</div>
+                  <div className="bench-sim-desc">llama-cpp-python not installed — results are synthetic</div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Agent status */}
             <div className="bench-agent-status">
               <span
