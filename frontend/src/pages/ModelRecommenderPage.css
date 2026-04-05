@@ -6,6 +6,7 @@
   flex-direction: column;
   font-family: var(--font-ui);
   position: relative;
+  animation: crt-boot 0.5s ease-out forwards;
 }
 
 /* CRT scanline overlay */

@@ -4,8 +4,20 @@ import { Zap } from 'lucide-react'
 import { useRecommenderStore } from '../../store/recommenderStore'
 import { post } from '../../utils/apiClient'
 import { SaveModelStackResponse } from '../../../../shared/contracts/backend_api'
+import { useTypewriter } from '../../hooks/useTypewriter'
+import { useCountUp } from '../../hooks/useCountUp'
 import VRAMBar from './VRAMBar'
 import './recommender.css'
+
+function AnimatedScore({ value, delay = 0 }: { value: number; delay?: number }) {
+  const count = useCountUp(value, 900, delay)
+  return <>{count}</>
+}
+
+function AnimatedTPS({ value, delay = 0 }: { value: number; delay?: number }) {
+  const count = useCountUp(value, 900, delay)
+  return <>{count}</>
+}
 
 const containerVariants = {
   hidden: {},
@@ -27,6 +39,7 @@ export default function Step3Results() {
   const { results, hardware, useCase, sliders, setStep } = useRecommenderStore()
   const best = results.find(r => r.is_best_pick)
   const rest = results.filter(r => !r.is_best_pick)
+  const { displayed } = useTypewriter('Your recommended models', { speed: 28 })
   const vramTotal = hardware?.gpu.vram_total_gb ?? null
   const [saving, setSaving] = useState(false)
   const [savedId, setSavedId] = useState<string | null>(null)
@@ -62,7 +75,7 @@ export default function Step3Results() {
   return (
     <div className="step-container">
       <div className="step-hero">
-        <h1 className="step-headline">Your recommended models</h1>
+        <h1 className="step-headline">{displayed}<span className="tw-cursor">_</span></h1>
         <p className="step-subtitle">
           Ranked by your priorities.{' '}
           {vramTotal
@@ -94,11 +107,11 @@ export default function Step3Results() {
               <div className="result-metrics">
                 <div className="metric">
                   <span className="metric-label">Score</span>
-                  <span className="metric-value score">{best.score}</span>
+                  <span className="metric-value score"><AnimatedScore value={best.score} delay={200} /></span>
                 </div>
                 <div className="metric">
                   <span className="metric-label">Est. TPS</span>
-                  <span className="metric-value tps"><Zap size={11} /> {best.tps_estimate}</span>
+                  <span className="metric-value tps"><Zap size={11} /> <AnimatedTPS value={best.tps_estimate} delay={300} /></span>
                 </div>
                 <div className="metric">
                   <span className="metric-label">VRAM</span>
@@ -109,7 +122,7 @@ export default function Step3Results() {
           </motion.div>
         )}
 
-        {rest.map(model => (
+        {rest.map((model, idx) => (
           <motion.div key={model.hf_model_id} className="result-card" variants={cardVariants}>
             <div className="result-card-inner">
               <div className="result-info">
@@ -123,12 +136,12 @@ export default function Step3Results() {
               <div className="result-metrics">
                 <div className="metric">
                   <span className="metric-label">Score</span>
-                  <span className="metric-value score">{model.score}</span>
+                  <span className="metric-value score"><AnimatedScore value={model.score} delay={200 + idx * 80} /></span>
                 </div>
                 <div className="metric">
                   <span className="metric-label">Est. TPS</span>
                   <span className="metric-value tps">
-                    <Zap size={12} /> {model.tps_estimate}
+                    <Zap size={12} /> <AnimatedTPS value={model.tps_estimate} delay={300 + idx * 80} />
                   </span>
                 </div>
                 <div className="metric">

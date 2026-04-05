@@ -2,6 +2,7 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { useRecommenderStore } from '../../store/recommenderStore'
 import { scoreModels } from '../../utils/scoreModels'
+import { useTypewriter } from '../../hooks/useTypewriter'
 import './recommender.css'
 
 type SliderKey = 'quality' | 'speed' | 'fit' | 'context'
@@ -71,6 +72,7 @@ function SliderRow({ sliderKey, label, desc, color }: SliderRowProps) {
 
 export default function Step2Sliders() {
   const { sliders, hardware, setResults, setStep } = useRecommenderStore()
+  const { displayed } = useTypewriter('Set your priorities', { speed: 30 })
 
   function handleFind() {
     const results = scoreModels(sliders, hardware)
@@ -81,7 +83,7 @@ export default function Step2Sliders() {
   return (
     <div className="step-container">
       <div className="step-hero">
-        <h1 className="step-headline">Set your priorities</h1>
+        <h1 className="step-headline">{displayed}<span className="tw-cursor">_</span></h1>
         <p className="step-subtitle">
           Drag each slider to balance what matters most. We'll weight the scoring accordingly.
         </p>

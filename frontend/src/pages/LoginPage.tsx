@@ -1,7 +1,11 @@
 import React, { useState, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth'
+import { useTypewriter } from '../hooks/useTypewriter'
 import './LoginPage.css'
+
+const EASE_CUBIC: [number, number, number, number] = [0.4, 0, 0.2, 1]
 
 const LoginPage: React.FC = () => {
   const { signIn, loading } = useAuth()
@@ -9,6 +13,7 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const { displayed } = useTypewriter('EverythingLLM', { speed: 55, delay: 300 })
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -23,8 +28,13 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="login-page">
-      <div className="login-card">
-        <h1>EverythingLLM</h1>
+      <motion.div
+        className="login-card"
+        initial={{ opacity: 0, y: 28, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: EASE_CUBIC }}
+      >
+        <h1>{displayed}<span className="tw-cursor">_</span></h1>
         <p className="login-subtitle">Sign in to continue</p>
         <form onSubmit={handleSubmit} className="login-form">
           <label htmlFor="email">Email</label>
@@ -50,7 +60,7 @@ const LoginPage: React.FC = () => {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-      </div>
+      </motion.div>
     </div>
   )
 }

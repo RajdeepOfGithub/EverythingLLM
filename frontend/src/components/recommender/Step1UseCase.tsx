@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Code2, FileText, MessageSquare, Brain, BookOpen } from 'lucide-react'
 import { useRecommenderStore } from '../../store/recommenderStore'
+import { useTypewriter } from '../../hooks/useTypewriter'
 import type { UseCase } from '../../../../shared/contracts/backend_api'
 import './recommender.css'
 
@@ -34,6 +35,7 @@ const cardVariants = {
 
 export default function Step1UseCase() {
   const { useCase, setUseCase, setStep, setHardware } = useRecommenderStore()
+  const { displayed } = useTypewriter('What do you need a model for?', { speed: 26 })
 
   useEffect(() => {
     fetch('http://localhost:7878/api/v1/hardware')
@@ -47,7 +49,7 @@ export default function Step1UseCase() {
   return (
     <div className="step-container">
       <div className="step-hero">
-        <h1 className="step-headline">What do you need a model for?</h1>
+        <h1 className="step-headline">{displayed}<span className="tw-cursor">_</span></h1>
         <p className="step-subtitle">
           Select your primary use case. We'll score models based on what matters most for your workflow.
         </p>
