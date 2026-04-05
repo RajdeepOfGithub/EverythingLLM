@@ -5,6 +5,7 @@
   min-height: 100vh;
   background: var(--bg);
   position: relative;
+  animation: crt-boot 0.5s ease-out forwards;
 }
 
 /* CRT scanline overlay */
@@ -42,6 +43,13 @@
   color: var(--text);
   text-shadow: var(--glow-yellow);
   margin: 0 0 0.25rem;
+  min-height: 1em;
+}
+
+.tw-cursor {
+  color: var(--violet);
+  animation: cursor-blink 0.6s step-end infinite;
+  margin-left: 1px;
 }
 
 .login-subtitle {

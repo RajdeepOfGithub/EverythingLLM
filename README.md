@@ -14,12 +14,12 @@ Each module feeds into the next, creating a seamless end-to-end workflow.
 
 ## Modules
 
-| Module | What it does |
-|---|---|
-| **Model Recommender** | Use case selection + priority sliders (Quality/Speed/Fit/Context) + hardware-aware scoring → ranked model list |
-| **Hardware Planner** | VRAM/RAM calculator, quantization fit grid, buy-vs-rent cost estimate |
-| **Throughput Benchmarker** | Runs live llama.cpp sweeps on your machine, streams real-time heatmaps |
-| **Speculative Decoding Advisor** | Recommends draft models, benchmarks target×draft pairs, shows speedup |
+| Module | What it does | Status |
+|---|---|---|
+| **Model Recommender** | Use case selection + priority sliders (Quality/Speed/Fit/Context) + hardware-aware scoring → ranked model list | ✅ Live |
+| **Hardware Planner** | VRAM/RAM calculator, quantization fit grid, buy-vs-rent cost estimate | Coming soon |
+| **Throughput Benchmarker** | Runs live llama.cpp sweeps on your machine, streams real-time heatmaps | Coming soon |
+| **Speculative Decoding Advisor** | Recommends draft models, benchmarks target×draft pairs, animated concept explainer | Coming soon |
 
 ---
 
@@ -38,7 +38,7 @@ Each module feeds into the next, creating a seamless end-to-end workflow.
    Auth (Cognito), user profiles, community benchmarks (RDS PostgreSQL)
 ```
 
-The **local agent** runs as a background process on your machine and is what makes real hardware detection and benchmarking possible — no data leaves your machine except what you choose to save to the community leaderboard.
+The **local agent** runs as a background process on your machine — no data leaves your machine except what you choose to save to the community leaderboard.
 
 ---
 
@@ -61,7 +61,7 @@ The **local agent** runs as a background process on your machine and is what mak
 | Phase | Status |
 |---|---|
 | Phase 1: Backbone (infra, auth, frontend↔agent↔backend) | ✅ Complete |
-| Phase 2: Model Recommender (wizard, sliders, hardware-aware scoring) | 🔄 In progress |
+| Phase 2: Model Recommender (wizard, sliders, hardware-aware scoring) | ✅ Complete |
 | Phase 3: Hardware Planner | ⏳ Upcoming |
 | Phase 4: Throughput Benchmarker | ⏳ Upcoming |
 | Phase 5: Speculative Decoding Advisor | ⏳ Upcoming |
@@ -75,20 +75,6 @@ The **local agent** runs as a background process on your machine and is what mak
 | Frontend (CloudFront) | `https://d1z4517js5cwl9.cloudfront.net` |
 | Backend (EC2) | `http://100.55.73.90` |
 | Auth (Cognito) | `us-east-1_JTfmCRqIP` |
-
----
-
-## Repository Structure
-
-```
-EverythingLLM/
-├── frontend/           # React + TypeScript web UI
-├── agent/              # Python local agent (runs on your machine)
-├── backend/            # Python FastAPI backend (AWS hosted)
-├── infrastructure/     # AWS CDK infrastructure definitions
-└── shared/
-    └── contracts/      # Typed API schemas — source of truth for all layers
-```
 
 ---
 
@@ -111,6 +97,20 @@ cd backend && pip install -r requirements.txt
 python -m alembic upgrade head
 python main.py
 # Runs on http://localhost:8000
+```
+
+---
+
+## Repository Structure
+
+```
+EverythingLLM/
+├── frontend/           # React + TypeScript web UI
+├── agent/              # Python local agent (runs on your machine)
+├── backend/            # Python FastAPI backend (AWS hosted)
+├── infrastructure/     # AWS CDK infrastructure definitions
+└── shared/
+    └── contracts/      # Typed API schemas — source of truth for all layers
 ```
 
 ---

@@ -4,6 +4,7 @@ import { useRecommenderStore } from '../store/recommenderStore'
 import Step1UseCase from '../components/recommender/Step1UseCase'
 import Step2Sliders from '../components/recommender/Step2Sliders'
 import Step3Results from '../components/recommender/Step3Results'
+import ModelRecommenderExplainer from '../components/animations/ModelRecommenderExplainer'
 import './ModelRecommenderPage.css'
 
 const variants = {
@@ -44,24 +45,32 @@ export default function ModelRecommenderPage() {
           <div className="rec-nav-right" />
         </nav>
 
-        {/* Wizard */}
-        <div className="recommender-content">
-          <AnimatePresence mode="wait" custom={direction}>
-            <motion.div
-              key={step}
-              custom={direction}
-              variants={variants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={transition}
-              className="rec-step-wrapper"
-            >
-              {step === 1 && <Step1UseCase />}
-              {step === 2 && <Step2Sliders />}
-              {step === 3 && <Step3Results />}
-            </motion.div>
-          </AnimatePresence>
+        {/* Two-column layout */}
+        <div className="recommender-layout">
+          {/* Wizard — 60% */}
+          <div className="recommender-content">
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={step}
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={transition}
+                className="rec-step-wrapper"
+              >
+                {step === 1 && <Step1UseCase />}
+                {step === 2 && <Step2Sliders />}
+                {step === 3 && <Step3Results />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Explainer sidebar — 38% — hidden on mobile */}
+          <aside className="recommender-sidebar">
+            <ModelRecommenderExplainer />
+          </aside>
         </div>
       </div>
     </MotionConfig>

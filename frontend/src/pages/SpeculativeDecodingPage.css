@@ -1,0 +1,177 @@
+/* ── Page shell ─────────────────────────────────────────────────────── */
+.spec-page {
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: var(--font-ui);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  animation: crt-boot 0.5s ease-out forwards;
+}
+
+.spec-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.07) 2px,
+    rgba(0, 0, 0, 0.07) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Nav ─────────────────────────────────────────────────────────────── */
+.spec-nav {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 48px;
+  background: rgba(5, 5, 0, 0.97);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.spec-nav-brand {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--text);
+  letter-spacing: 0.05em;
+  text-shadow: var(--glow-yellow);
+}
+
+.spec-nav-module {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Content — centered single column, max 900px ─────────────────────── */
+.spec-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 48px;
+  max-width: 980px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Coming soon card ────────────────────────────────────────────────── */
+.spec-coming-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 36px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.spec-phase-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.spec-coming-body {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.spec-title {
+  font-family: var(--font-display);
+  font-size: 64px;
+  color: var(--text);
+  margin: 0;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-shadow: var(--glow-yellow);
+  flex-shrink: 0;
+}
+
+.spec-desc {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.8;
+  margin: 0;
+}
+
+.spec-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.spec-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.spec-feature-bullet {
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.spec-coming-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  margin-top: 8px;
+}
+
+/* ── Explainer wrap ──────────────────────────────────────────────────── */
+.spec-explainer-wrap {
+  width: 100%;
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .spec-content {
+    padding: 32px 20px 60px;
+    gap: 24px;
+  }
+
+  .spec-coming-body {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .spec-title {
+    font-size: 48px;
+  }
+
+  .spec-nav {
+    padding: 0 20px;
+  }
+
+  .spec-coming-card {
+    padding: 24px 20px;
+  }
+}
