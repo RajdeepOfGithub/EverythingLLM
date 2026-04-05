@@ -562,6 +562,12 @@
   margin-top: 4px;
 }
 
+/* ── Module mini-animation area ───────────────────────────────────────── */
+.module-mini-anim {
+  width: 100%;
+  flex-shrink: 0;
+}
+
 .module-name {
   font-family: var(--font-display);
   font-size: 32px;

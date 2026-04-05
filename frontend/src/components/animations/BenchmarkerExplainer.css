@@ -1,0 +1,174 @@
+/* ── Panel shell ─────────────────────────────────────────────────────── */
+.be-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.be-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.be-header-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--violet);
+}
+
+.be-subtext {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+/* ── Grid ────────────────────────────────────────────────────────────── */
+.be-grid-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.be-grid-row {
+  display: flex;
+  gap: 3px;
+  align-items: stretch;
+}
+
+.be-grid-row--header {
+  margin-bottom: 2px;
+}
+
+.be-corner-cell {
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.be-col-header {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.be-col-header span {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.be-row-header {
+  width: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* ── Cell ────────────────────────────────────────────────────────────── */
+.be-cell {
+  flex: 1;
+  height: 38px;
+  border: 1px solid rgba(255, 230, 0, 0.08);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 230, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.be-cell--active {
+  border-color: var(--violet);
+  background: rgba(255, 230, 0, 0.1);
+}
+
+.be-cell--best {
+  border-color: var(--green);
+  background: rgba(0, 255, 136, 0.08);
+}
+
+.be-cell-tps {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.be-best-badge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  color: var(--green);
+  background: var(--bg);
+  padding: 1px 4px;
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  border-radius: 1px;
+  white-space: nowrap;
+}
+
+/* ── Chart ───────────────────────────────────────────────────────────── */
+.be-chart-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.be-chart-label-y {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.be-chart-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.be-chart-svg {
+  display: block;
+  width: 100%;
+  height: 60px;
+}
+
+.be-chart-label-x {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-align: right;
+  text-transform: uppercase;
+}

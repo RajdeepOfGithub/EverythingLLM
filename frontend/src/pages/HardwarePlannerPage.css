@@ -1,0 +1,186 @@
+/* ── Page shell ─────────────────────────────────────────────────────── */
+.hw-page {
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: var(--font-ui);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  animation: crt-boot 0.5s ease-out forwards;
+}
+
+.hw-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.07) 2px,
+    rgba(0, 0, 0, 0.07) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Nav ─────────────────────────────────────────────────────────────── */
+.hw-nav {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 48px;
+  background: rgba(5, 5, 0, 0.97);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.hw-nav-brand {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--text);
+  letter-spacing: 0.05em;
+  text-shadow: var(--glow-yellow);
+}
+
+.hw-nav-module {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Two-column layout ───────────────────────────────────────────────── */
+.hw-layout {
+  flex: 1;
+  display: flex;
+  gap: 2%;
+  padding: 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: flex-start;
+}
+
+/* ── Placeholder column ──────────────────────────────────────────────── */
+.hw-placeholder {
+  flex: 0 0 52%;
+  min-width: 0;
+}
+
+.hw-placeholder-inner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hw-phase-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hw-title {
+  font-family: var(--font-display);
+  font-size: 72px;
+  color: var(--text);
+  margin: 0;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-shadow: var(--glow-yellow);
+}
+
+.hw-desc {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.8;
+  margin: 0;
+  max-width: 420px;
+}
+
+.hw-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.hw-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.hw-feature-bullet {
+  color: var(--violet);
+  flex-shrink: 0;
+}
+
+.hw-coming-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  margin-top: 8px;
+}
+
+/* ── Explainer column ────────────────────────────────────────────────── */
+.hw-explainer-col {
+  flex: 0 0 46%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hw-explainer-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--violet);
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hw-layout {
+    flex-direction: column;
+    padding: 32px 20px 60px;
+    gap: 32px;
+  }
+
+  .hw-placeholder,
+  .hw-explainer-col {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .hw-title {
+    font-size: 52px;
+  }
+
+  .hw-nav {
+    padding: 0 20px;
+  }
+}

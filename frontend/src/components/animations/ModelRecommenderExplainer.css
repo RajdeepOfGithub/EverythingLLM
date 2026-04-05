@@ -1,0 +1,211 @@
+/* ── Panel shell ─────────────────────────────────────────────────────── */
+.mre-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  box-sizing: border-box;
+  position: sticky;
+  top: 80px;
+}
+
+.mre-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mre-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--violet);
+}
+
+/* ── Flow ────────────────────────────────────────────────────────────── */
+.mre-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  flex: 1;
+}
+
+/* ── Node ────────────────────────────────────────────────────────────── */
+.mre-node {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 230, 0, 0.02);
+  transition: background 0.3s ease;
+}
+
+.mre-node--lit {
+  background: rgba(255, 230, 0, 0.06);
+  box-shadow: 0 0 16px rgba(255, 230, 0, 0.12);
+}
+
+.mre-node-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mre-node--lit .mre-node-label {
+  color: var(--violet);
+}
+
+.mre-node-value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+
+/* ── Weight bars ─────────────────────────────────────────────────────── */
+.mre-weight-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mre-weight-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mre-weight-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-dim);
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.mre-weight-track {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 230, 0, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mre-weight-fill {
+  height: 100%;
+  border-radius: 2px;
+}
+
+.mre-weight-pct {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--muted);
+  width: 24px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── VRAM row ────────────────────────────────────────────────────────── */
+.mre-vram-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mre-vram-text {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+.mre-vram-sep {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.mre-vram-check {
+  font-size: 13px;
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* ── Score ───────────────────────────────────────────────────────────── */
+.mre-score-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.mre-score-num {
+  font-family: var(--font-display);
+  font-size: 32px;
+  color: var(--violet);
+  text-shadow: 0 0 20px rgba(255, 230, 0, 0.5);
+  line-height: 1;
+}
+
+.mre-score-max {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* ── Ranked list ─────────────────────────────────────────────────────── */
+.mre-ranked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mre-ranked-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mre-rank-badge {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--violet);
+  letter-spacing: 0.05em;
+  width: 22px;
+  flex-shrink: 0;
+}
+
+.mre-rank-name {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  flex: 1;
+}
+
+.mre-rank-score {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text);
+}
+
+/* ── Arrow ───────────────────────────────────────────────────────────── */
+.mre-arrow-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 2px 0;
+}
+
+.mre-arrow-svg {
+  display: block;
+  overflow: visible;
+}

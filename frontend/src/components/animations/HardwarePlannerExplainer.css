@@ -1,0 +1,173 @@
+/* ── Panel shell ─────────────────────────────────────────────────────── */
+.hpe-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.hpe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hpe-header-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--violet);
+}
+
+.hpe-capacity-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+/* ── Layers ──────────────────────────────────────────────────────────── */
+.hpe-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hpe-layer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hpe-layer--total {
+  margin-top: 4px;
+}
+
+.hpe-layer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hpe-layer-name {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.hpe-layer-name--total {
+  color: var(--text);
+  font-size: 9px;
+}
+
+.hpe-gb {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+}
+
+.hpe-gb--total {
+  font-size: 11px;
+  font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+/* ── Track ───────────────────────────────────────────────────────────── */
+.hpe-track {
+  height: 8px;
+  background: rgba(255, 230, 0, 0.05);
+  border-radius: 2px;
+  border: 1px solid rgba(255, 230, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.hpe-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: background 0.4s ease;
+}
+
+.hpe-bar-fill--total {
+  border-radius: 2px;
+}
+
+.hpe-overflow-extension {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(255, 51, 0, 0.6);
+  /* positioned right after the base fill — uses left positioning via JS */
+  left: 25%;
+}
+
+/* overflow threshold marker */
+.hpe-overflow-line {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  width: 1px;
+  background: rgba(255, 51, 0, 0.5);
+  pointer-events: none;
+}
+
+/* ── Separator ───────────────────────────────────────────────────────── */
+.hpe-separator {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* ── Badges ──────────────────────────────────────────────────────────── */
+.hpe-badge-area {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.hpe-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+}
+
+.hpe-badge--fit {
+  color: var(--green);
+  border-color: rgba(0, 255, 136, 0.3);
+  background: rgba(0, 255, 136, 0.06);
+}
+
+.hpe-badge--exceed {
+  color: var(--orange);
+  border-color: rgba(255, 140, 0, 0.3);
+  background: rgba(255, 140, 0, 0.06);
+}
+
+.hpe-badge--overflow {
+  color: var(--red);
+  border-color: rgba(255, 51, 0, 0.3);
+  background: rgba(255, 51, 0, 0.06);
+}
+
+/* ── Footer note ─────────────────────────────────────────────────────── */
+.hpe-footer-note {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}

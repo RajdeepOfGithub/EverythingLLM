@@ -8,6 +8,10 @@ import {
 } from 'framer-motion'
 import { Brain, Server, Activity, Zap, CheckCircle } from 'lucide-react'
 import { useTypewriter } from '../hooks/useTypewriter'
+import MiniRecommenderAnim from '../components/animations/MiniRecommenderAnim'
+import MiniHardwareAnim from '../components/animations/MiniHardwareAnim'
+import MiniBenchmarkerAnim from '../components/animations/MiniBenchmarkerAnim'
+import MiniSpeculativeAnim from '../components/animations/MiniSpeculativeAnim'
 import './HomePage.css'
 
 // ── Data ──────────────────────────────────────────────────────────────────────
@@ -63,6 +67,7 @@ const MODULES = [
     desc: 'Select the best model for your use case. Weighted scoring across quality, speed, VRAM fit, and context length — calibrated to your hardware.',
     status: 'active' as const,
     color: 'var(--violet)',
+    MiniAnim: MiniRecommenderAnim,
   },
   {
     phase: 'Phase 02',
@@ -71,6 +76,7 @@ const MODULES = [
     desc: 'Calculate exact VRAM and RAM requirements. Get buy-vs-rent cost estimates before committing to hardware.',
     status: 'soon' as const,
     color: 'var(--text-dim)',
+    MiniAnim: MiniHardwareAnim,
   },
   {
     phase: 'Phase 03',
@@ -79,6 +85,7 @@ const MODULES = [
     desc: 'Connect your local agent, run llama.cpp parameter sweeps, and visualize real throughput curves on your own machine.',
     status: 'soon' as const,
     color: 'var(--text-dim)',
+    MiniAnim: MiniBenchmarkerAnim,
   },
   {
     phase: 'Phase 04',
@@ -87,6 +94,7 @@ const MODULES = [
     desc: 'Find the best draft model pairing for your target. Live benchmarking with an animated concept explainer.',
     status: 'soon' as const,
     color: 'var(--text-dim)',
+    MiniAnim: MiniSpeculativeAnim,
   },
 ]
 
@@ -417,6 +425,7 @@ function ModulesSection() {
       <div className="modules-grid">
         {MODULES.map((mod, i) => {
           const Icon = mod.icon
+          const MiniAnim = mod.MiniAnim
           return (
             <motion.div
               key={mod.name}
@@ -434,6 +443,9 @@ function ModulesSection() {
               <span className="module-phase">{mod.phase}</span>
               <div className="module-icon" style={{ color: mod.color }}>
                 <Icon size={28} strokeWidth={1.5} />
+              </div>
+              <div className="module-mini-anim">
+                <MiniAnim />
               </div>
               <h3 className="module-name">{mod.name}</h3>
               <p className="module-desc">{mod.desc}</p>
