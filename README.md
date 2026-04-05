@@ -14,12 +14,12 @@ Each module feeds into the next, creating a seamless end-to-end workflow.
 
 ## Modules
 
-| Module | What it does |
-|---|---|
-| **Model Selector** | Search HuggingFace Hub, filter by use case, auto-fill specs downstream |
-| **Hardware Planner** | VRAM/RAM calculator, quantization fit grid, buy-vs-rent cost estimate |
-| **Throughput Benchmarker** | Runs live llama.cpp sweeps on your machine, streams real-time heatmaps |
-| **Speculative Decoding Advisor** | Recommends draft models, benchmarks target×draft pairs, shows speedup |
+| Module | What it does | Status |
+|---|---|---|
+| **Model Recommender** | Use case selection + quality/speed/fit/context sliders + hardware-aware scoring → ranked model list | ✅ Live |
+| **Hardware Planner** | VRAM/RAM calculator, quantization fit grid, buy-vs-rent cost estimate | Coming soon |
+| **Throughput Benchmarker** | Runs live llama.cpp sweeps on your machine, streams real-time heatmaps | Coming soon |
+| **Speculative Decoding Advisor** | Recommends draft models, benchmarks target×draft pairs, animated concept explainer | Coming soon |
 
 ---
 
@@ -38,13 +38,13 @@ Each module feeds into the next, creating a seamless end-to-end workflow.
    Auth (Cognito), user profiles, community benchmarks (RDS PostgreSQL)
 ```
 
-The **local agent** runs as a background process on your machine and is what makes real hardware detection and benchmarking possible — no data leaves your machine except what you choose to save to the community leaderboard.
+The **local agent** runs as a background process on your machine — no data leaves your machine except what you choose to save to the community leaderboard.
 
 ---
 
 ## Tech Stack
 
-**Frontend:** React 19, TypeScript, Vite, custom CSS
+**Frontend:** React 19, TypeScript, Vite, Framer Motion, Zustand, custom CSS
 
 **Local Agent:** Python 3.11+, FastAPI, WebSockets, uvicorn
 
@@ -58,17 +58,22 @@ The **local agent** runs as a background process on your machine and is what mak
 
 ## Project Status
 
-Currently in active development — **Phase 1 (Backbone)** in progress.
-
 | Phase | Status |
 |---|---|
-| Phase 1: Backbone (infra, auth, connections) | 🔄 In progress |
-| Phase 2: Model Selector | ⏳ Upcoming |
+| Phase 1: Backbone (infra, auth, frontend↔agent↔backend) | ✅ Complete |
+| Phase 2: Model Recommender | 🔄 In progress |
 | Phase 3: Hardware Planner | ⏳ Upcoming |
 | Phase 4: Throughput Benchmarker | ⏳ Upcoming |
 | Phase 5: Speculative Decoding Advisor | ⏳ Upcoming |
 | Phase 6: Dashboard + Community | ⏳ Upcoming |
 | Phase 7: Polish + Desktop App (Tauri) | ⏳ Upcoming |
+
+**Phase 2 progress:**
+- 3-step wizard: use case selection → preference sliders → ranked model results
+- Hardware-aware scoring with VRAM fit check via local agent
+- Retro terminal theme: VT323 + Space Mono, `#FFE600` accents, CRT scanlines
+- Public landing page with typewriter hero and animated pipeline overview
+- Segmented VRAM bar, AnimatePresence step transitions, staggered card reveals
 
 ---
 
@@ -88,4 +93,4 @@ EverythingLLM/
 
 ## Contributing
 
-This project is in early development. Contribution guidelines will be added once the backbone is complete.
+This project is in early development. Contribution guidelines will be added once the core modules are complete.
