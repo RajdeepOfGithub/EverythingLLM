@@ -8,6 +8,7 @@ import {
 } from 'framer-motion'
 import { Brain, Server, Activity, Zap, CheckCircle } from 'lucide-react'
 import { useTypewriter } from '../hooks/useTypewriter'
+import NeuralNetBg from '../components/NeuralNetBg'
 import MiniRecommenderAnim from '../components/animations/MiniRecommenderAnim'
 import MiniHardwareAnim from '../components/animations/MiniHardwareAnim'
 import MiniBenchmarkerAnim from '../components/animations/MiniBenchmarkerAnim'
@@ -157,6 +158,7 @@ function HeroSection() {
 
   return (
     <section className="hero-section">
+      <NeuralNetBg />
       <div className="hero-grid-bg" />
       <div className="hero-vignette" />
       <div className="hero-scan-line" />
