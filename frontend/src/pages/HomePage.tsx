@@ -158,6 +158,7 @@ function HeroSection() {
 
   return (
     <section className="hero-section">
+      <NeuralNetBg />
       <div className="hero-grid-bg" />
       <div className="hero-vignette" />
       <div className="hero-scan-line" />
@@ -522,7 +523,6 @@ export default function HomePage() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="home-page">
-        <NeuralNetBg />
         <HomeNav />
         <HeroSection />
         <PipelineSection />
