@@ -18,7 +18,7 @@ Each module feeds into the next, creating a seamless end-to-end workflow.
 |---|---|---|
 | **Model Recommender** | Use case selection + priority sliders (Quality/Speed/Fit/Context) + hardware-aware scoring → ranked model list | ✅ Live |
 | **Hardware Planner** | Live VRAM calculator, quant comparison chart, model fit grid, buy-vs-rent cost estimate, side-by-side model comparison | ✅ Live |
-| **Throughput Benchmarker** | Runs live llama.cpp sweeps on your machine, streams real-time heatmaps | Coming soon |
+| **Throughput Benchmarker** | Connects to local agent, runs real llama.cpp inference, streams live TPS chart via WebSocket. Simulation fallback when no model available. | ✅ Live |
 | **Speculative Decoding Advisor** | Recommends draft models, benchmarks target×draft pairs, animated concept explainer | Coming soon |
 
 ---
@@ -63,8 +63,8 @@ The **local agent** runs as a background process on your machine — no data lea
 | Phase 1: Backbone (infra, auth, frontend↔agent↔backend) | ✅ Complete |
 | Phase 2: Model Recommender (wizard, sliders, hardware-aware scoring) | ✅ Complete |
 | Phase 3: Hardware Planner (VRAM calc, fit grid, model comparison) | ✅ Complete |
-| Phase 4: Throughput Benchmarker | ⏳ Next |
-| Phase 5: Speculative Decoding Advisor | ⏳ Upcoming |
+| Phase 4: Throughput Benchmarker (real llama.cpp inference, live WebSocket TPS chart, save to DB) | ✅ Complete |
+| Phase 5: Speculative Decoding Advisor | ⏳ Next |
 | Phase 6: Dashboard + Community | ⏳ Upcoming |
 | Phase 7: Polish + Desktop App (Tauri) | ⏳ Upcoming |
 
