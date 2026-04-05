@@ -141,7 +141,7 @@ export default function NeuralNetBg() {
             ctx!.beginPath()
             ctx!.moveTo(a.x, a.y)
             ctx!.lineTo(b.x, b.y)
-            ctx!.strokeStyle = 'rgba(255, 230, 0, 0.06)'
+            ctx!.strokeStyle = 'rgba(255, 255, 255, 0.07)'
             ctx!.lineWidth = 0.5
             ctx!.stroke()
           }
@@ -153,10 +153,10 @@ export default function NeuralNetBg() {
         for (const node of layer) {
           ctx!.beginPath()
           ctx!.arc(node.x, node.y, BASE_RADIUS, 0, Math.PI * 2)
-          ctx!.fillStyle = 'rgba(255, 230, 0, 0.25)'
+          ctx!.fillStyle = 'rgba(0, 0, 0, 0.85)'
           ctx!.fill()
-          ctx!.strokeStyle = 'rgba(255, 230, 0, 0.5)'
-          ctx!.lineWidth = 0.8
+          ctx!.strokeStyle = 'rgba(255, 255, 255, 0.55)'
+          ctx!.lineWidth = 1
           ctx!.stroke()
         }
       }
@@ -223,7 +223,7 @@ export default function NeuralNetBg() {
 
       // ── Draw dim edges ───────────────────────────────────────────────────────
       ctx!.lineWidth = 0.5
-      ctx!.strokeStyle = 'rgba(255, 230, 0, 0.06)'
+      ctx!.strokeStyle = 'rgba(255, 255, 255, 0.07)'
       for (let li = 0; li < layers.length - 1; li++) {
         for (const a of layers[li]) {
           for (const b of layers[li + 1]) {
@@ -240,7 +240,7 @@ export default function NeuralNetBg() {
 
       // ── Draw active edges ────────────────────────────────────────────────────
       ctx!.lineWidth = 1
-      ctx!.strokeStyle = 'rgba(255, 230, 0, 0.18)'
+      ctx!.strokeStyle = 'rgba(255, 255, 255, 0.28)'
       for (const key of activeEdges) {
         const parts = key.split('-').map(Number)
         const [la, na, lb, nb] = parts
@@ -270,13 +270,13 @@ export default function NeuralNetBg() {
 
         ctx!.beginPath()
         ctx!.arc(px, py, 3, 0, Math.PI * 2)
-        ctx!.fillStyle = 'rgba(255, 230, 0, 0.9)'
+        ctx!.fillStyle = 'rgba(255, 255, 255, 0.95)'
         ctx!.fill()
 
         // Glow around pulse
         const grd = ctx!.createRadialGradient(px, py, 0, px, py, 8)
-        grd.addColorStop(0, 'rgba(255, 230, 0, 0.35)')
-        grd.addColorStop(1, 'rgba(255, 230, 0, 0)')
+        grd.addColorStop(0, 'rgba(255, 255, 255, 0.3)')
+        grd.addColorStop(1, 'rgba(255, 255, 255, 0)')
         ctx!.beginPath()
         ctx!.arc(px, py, 8, 0, Math.PI * 2)
         ctx!.fillStyle = grd
@@ -306,10 +306,10 @@ export default function NeuralNetBg() {
 
           ctx!.beginPath()
           ctx!.arc(node.x, node.y, r, 0, Math.PI * 2)
-          ctx!.fillStyle = `rgba(255, 230, 0, ${fillAlpha.toFixed(3)})`
+          ctx!.fillStyle = `rgba(0, 0, 0, ${(0.85 - (fillAlpha - 0.25) * 0.4).toFixed(3)})`
           ctx!.fill()
-          ctx!.strokeStyle = `rgba(255, 230, 0, ${strokeAlpha.toFixed(3)})`
-          ctx!.lineWidth = 0.8
+          ctx!.strokeStyle = `rgba(255, 255, 255, ${strokeAlpha.toFixed(3)})`
+          ctx!.lineWidth = 1
           ctx!.stroke()
 
           // Extra glow ring on pulse
@@ -317,8 +317,8 @@ export default function NeuralNetBg() {
             const pf = node.pulseTimer / PULSE_DURATION
             const glowR = r * 2.5
             const grd = ctx!.createRadialGradient(node.x, node.y, r, node.x, node.y, glowR)
-            grd.addColorStop(0, `rgba(255, 230, 0, ${(0.2 * pf).toFixed(3)})`)
-            grd.addColorStop(1, 'rgba(255, 230, 0, 0)')
+            grd.addColorStop(0, `rgba(255, 255, 255, ${(0.18 * pf).toFixed(3)})`)
+            grd.addColorStop(1, 'rgba(255, 255, 255, 0)')
             ctx!.beginPath()
             ctx!.arc(node.x, node.y, glowR, 0, Math.PI * 2)
             ctx!.fillStyle = grd
