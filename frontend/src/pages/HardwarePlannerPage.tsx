@@ -1,4 +1,5 @@
 import React, { useEffect, useReducer, useRef } from 'react'
+import { useCountUp } from '../hooks/useCountUp'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import type { HardwareResponse } from '../types/contracts'
@@ -219,6 +220,38 @@ const VRAMBar: React.FC<VRAMBarProps> = ({ result, availableVramGb }) => {
           <div className="hp-vram-legend-dot" style={{ background: 'var(--orange)' }} />
           Overhead
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Stats grid with count-up animations
+// ---------------------------------------------------------------------------
+
+const StatsGrid: React.FC<{ result: HWCalcResult }> = ({ result }) => {
+  const ram   = useCountUp(Math.round(result.ramRequiredGb * 10), 600)
+  const tps   = useCountUp(result.tps, 700)
+  const power = useCountUp(result.powerW, 650)
+  const load  = useCountUp(result.loadTimeSec, 500)
+
+  return (
+    <div className="hp-stats-grid">
+      <div className="hp-stat-card">
+        <div className="hp-stat-name">RAM Required</div>
+        <div className="hp-stat-value ram">{(ram / 10).toFixed(1)} GB</div>
+      </div>
+      <div className="hp-stat-card">
+        <div className="hp-stat-name">TPS Estimate</div>
+        <div className="hp-stat-value tps">~{tps} t/s</div>
+      </div>
+      <div className="hp-stat-card">
+        <div className="hp-stat-name">Power Draw</div>
+        <div className="hp-stat-value power">~{power} W</div>
+      </div>
+      <div className="hp-stat-card">
+        <div className="hp-stat-name">Load Time</div>
+        <div className="hp-stat-value load">~{load}s</div>
       </div>
     </div>
   )
@@ -541,24 +574,7 @@ const HardwarePlannerPage: React.FC = () => {
                 <VRAMBar result={result} availableVramGb={gpuVramGb} />
 
                 {/* Stats grid */}
-                <div className="hp-stats-grid">
-                  <div className="hp-stat-card">
-                    <div className="hp-stat-name">RAM Required</div>
-                    <div className="hp-stat-value ram">{result.ramRequiredGb.toFixed(1)} GB</div>
-                  </div>
-                  <div className="hp-stat-card">
-                    <div className="hp-stat-name">TPS Estimate</div>
-                    <div className="hp-stat-value tps">~{result.tps} t/s</div>
-                  </div>
-                  <div className="hp-stat-card">
-                    <div className="hp-stat-name">Power Draw</div>
-                    <div className="hp-stat-value power">~{result.powerW} W</div>
-                  </div>
-                  <div className="hp-stat-card">
-                    <div className="hp-stat-name">Load Time</div>
-                    <div className="hp-stat-value load">~{result.loadTimeSec}s</div>
-                  </div>
-                </div>
+                <StatsGrid result={result} />
               </div>
             </div>
           </section>

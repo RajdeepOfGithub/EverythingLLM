@@ -90,6 +90,17 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  background: linear-gradient(90deg, #FFE600 30%, #fff6a0 50%, #FFE600 70%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: label-shimmer 4s linear infinite;
+}
+
+@keyframes label-shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
 }
 
 .hp-section-label::after {
@@ -97,6 +108,9 @@
   flex: 1;
   height: 1px;
   background: var(--border);
+  -webkit-text-fill-color: initial;
+  background-clip: initial;
+  -webkit-background-clip: initial;
 }
 
 /* ── Section 1: Model + Hardware inputs ──────────────────────────────────── */
@@ -135,7 +149,7 @@
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: var(--text-dim);
+  color: #D4D4D4;
   text-transform: uppercase;
 }
 
@@ -371,7 +385,7 @@
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: var(--text-dim);
+  color: #D4D4D4;
   text-transform: uppercase;
 }
 
@@ -558,7 +572,7 @@
   gap: 5px;
   font-family: var(--font-mono);
   font-size: 9px;
-  color: var(--text-dim);
+  color: #C8C8C8;
 }
 
 .hp-vram-legend-dot {
@@ -590,13 +604,14 @@
   font-size: 8px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: #909090;
 }
 
 .hp-stat-value {
   font-family: var(--font-mono);
-  font-size: 16px;
-  color: var(--text);
+  font-size: 18px;
+  color: #F8F8F8;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
 }
 
 .hp-stat-value.tps   { color: var(--blue); }
@@ -663,7 +678,7 @@
 .hp-chart-pct-label {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--text-dim);
+  color: #C8C8C8;
   text-align: right;
   white-space: nowrap;
 }
@@ -827,7 +842,7 @@
 .hp-cloud-table td {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--text-dim);
+  color: #C8C8C8;
   padding: 10px 14px;
   border-bottom: 1px solid rgba(255, 230, 0, 0.05);
 }
