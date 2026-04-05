@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useRef } from 'react'
+import React, { useEffect, useReducer, useRef, useState } from 'react'
 import { useCountUp } from '../hooks/useCountUp'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
@@ -12,6 +12,7 @@ import {
   gridFitResult,
   CLOUD_OPTIONS,
   cloudFits,
+  QUALITY_RETENTION,
   type QuantKey,
   type HWCalcResult,
 } from '../utils/hwCalc'
@@ -220,6 +221,303 @@ const VRAMBar: React.FC<VRAMBarProps> = ({ result, availableVramGb }) => {
           <div className="hp-vram-legend-dot" style={{ background: 'var(--orange)' }} />
           Overhead
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Section 7: Model Comparison
+// ---------------------------------------------------------------------------
+
+interface ModelCompareProps {
+  gpuVramGb: number
+  ramGb: number
+}
+
+// A single animated stat value cell
+const CompareStatValue: React.FC<{
+  raw: number
+  suffix: string
+  decimals: number
+  win: boolean | null  // true = green, false = dim, null = neutral (boolean check)
+}> = ({ raw, suffix, decimals, win }) => {
+  const intRaw = Math.round(raw * Math.pow(10, decimals))
+  const animated = useCountUp(intRaw, 500)
+  const display = decimals > 0
+    ? (animated / Math.pow(10, decimals)).toFixed(decimals)
+    : String(animated)
+
+  const cls = win === true
+    ? 'hp-compare-stat-value win'
+    : win === false
+    ? 'hp-compare-stat-value lose'
+    : 'hp-compare-stat-value'
+
+  return <span className={cls}>{display}{suffix}</span>
+}
+
+const ModelCompare: React.FC<ModelCompareProps> = ({ gpuVramGb, ramGb }) => {
+  const [modelA, setModelA] = useState('qwen-14b')
+  const [quantA, setQuantA] = useState<QuantKey>('Q4_K_M')
+  const [customParamsA, setCustomParamsA] = useState(7)
+
+  const [modelB, setModelB] = useState('phi3-mini')
+  const [quantB, setQuantB] = useState<QuantKey>('Q4_K_M')
+  const [customParamsB, setCustomParamsB] = useState(7)
+
+  function resolveModelParams(key: string, custom: number): number {
+    if (key === 'custom') return custom
+    return MODEL_POOL.find(m => m.key === key)?.params ?? 7
+  }
+
+  const paramsA = resolveModelParams(modelA, customParamsA)
+  const paramsB = resolveModelParams(modelB, customParamsB)
+
+  const resultA = calculateHardware({
+    paramsBillions: paramsA,
+    quant: quantA,
+    contextLen: 4096,
+    batchSize: 1,
+    gpuLayers: 100,
+    gpuVramGb,
+    ramGb,
+  })
+
+  const resultB = calculateHardware({
+    paramsBillions: paramsB,
+    quant: quantB,
+    contextLen: 4096,
+    batchSize: 1,
+    gpuLayers: 100,
+    gpuVramGb,
+    ramGb,
+  })
+
+  const qualA = QUALITY_RETENTION[quantA]
+  const qualB = QUALITY_RETENTION[quantB]
+
+  // Compare: lower is better for vram, ram, power, load. Higher is better for tps, quality.
+  // Returns: 'A' | 'B' | 'tie'
+  function winner(a: number, b: number, higherBetter: boolean): 'A' | 'B' | 'tie' {
+    if (a === b) return 'tie'
+    if (higherBetter) return a > b ? 'A' : 'B'
+    return a < b ? 'A' : 'B'
+  }
+
+  const wVram    = winner(resultA.totalVramGb,    resultB.totalVramGb,    false)
+  const wRam     = winner(resultA.ramRequiredGb,  resultB.ramRequiredGb,  false)
+  const wTps     = winner(resultA.tps,            resultB.tps,            true)
+  const wPower   = winner(resultA.powerW,         resultB.powerW,         false)
+  const wLoad    = winner(resultA.loadTimeSec,    resultB.loadTimeSec,    false)
+  const wQuality = winner(qualA,                  qualB,                  true)
+
+  // Fits in VRAM: A wins if A fits and B doesn't; B wins if B fits and A doesn't; tie otherwise
+  const fitsA = resultA.verdict !== 'over'
+  const fitsB = resultB.verdict !== 'over'
+  let wFits: 'A' | 'B' | 'tie' = 'tie'
+  if (fitsA && !fitsB) wFits = 'A'
+  else if (fitsB && !fitsA) wFits = 'B'
+
+  const winsA = [wVram, wRam, wTps, wPower, wLoad, wFits, wQuality].filter(w => w === 'A').length
+  const winsB = [wVram, wRam, wTps, wPower, wLoad, wFits, wQuality].filter(w => w === 'B').length
+  const overallWinner: 'A' | 'B' | 'tie' = winsA > winsB ? 'A' : winsB > winsA ? 'B' : 'tie'
+
+  // Helper: win indicator for column A (true=win, false=lose, null=tie)
+  function aWins(w: 'A' | 'B' | 'tie'): boolean | null {
+    if (w === 'tie') return null
+    return w === 'A'
+  }
+
+  // Helper: win indicator for column B (true=win, false=lose, null=tie)
+  function bWins(w: 'A' | 'B' | 'tie'): boolean | null {
+    if (w === 'tie') return null
+    return w === 'B'
+  }
+
+  return (
+    <div className="hp-compare-panel">
+      <div className="hp-compare-cols">
+
+        {/* ── Column A ───────────────────────────────────────────────────── */}
+        <div className={`hp-compare-col${overallWinner === 'A' ? ' winner' : ''}`}>
+          <div className="hp-compare-col-header">MODEL A</div>
+
+          <div className="hp-compare-selectors">
+            <select
+              className="hp-select"
+              value={modelA}
+              onChange={e => setModelA(e.target.value)}
+            >
+              {MODEL_POOL.map(m => (
+                <option key={m.key} value={m.key}>{m.label}</option>
+              ))}
+            </select>
+
+            {modelA === 'custom' && (
+              <input
+                type="number"
+                className="hp-number-input"
+                min={0.1} max={700} step={0.1}
+                value={customParamsA}
+                onChange={e => setCustomParamsA(parseFloat(e.target.value) || 7)}
+                placeholder="Params (B)"
+              />
+            )}
+
+            <div className="hp-quant-row">
+              {QUANT_KEYS.map(q => (
+                <button
+                  key={q}
+                  className={`hp-quant-btn${quantA === q ? ' active' : ''}`}
+                  onClick={() => setQuantA(q)}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="hp-compare-stats">
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">VRAM Required</span>
+              <CompareStatValue raw={resultA.totalVramGb} suffix=" GB" decimals={1} win={aWins(wVram)} />
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">RAM Required</span>
+              <CompareStatValue raw={resultA.ramRequiredGb} suffix=" GB" decimals={1} win={aWins(wRam)} />
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">TPS Estimate</span>
+              <CompareStatValue raw={resultA.tps} suffix=" t/s" decimals={0} win={aWins(wTps)} />
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">Power Draw</span>
+              <CompareStatValue raw={resultA.powerW} suffix=" W" decimals={0} win={aWins(wPower)} />
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">Load Time</span>
+              <CompareStatValue raw={resultA.loadTimeSec} suffix="s" decimals={0} win={aWins(wLoad)} />
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">Fits in VRAM</span>
+              <span className={`hp-compare-stat-value${wFits === 'A' ? ' win' : wFits === 'B' ? ' lose' : ''}`}>
+                {fitsA ? '✓' : '✗'}
+              </span>
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">Quality Score</span>
+              <CompareStatValue raw={qualA} suffix="%" decimals={0} win={aWins(wQuality)} />
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {(overallWinner === 'A' || overallWinner === 'tie') && (
+              <motion.div
+                key="banner-a"
+                className={`hp-compare-winner-banner${overallWinner === 'tie' ? ' tie' : ''}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.25 }}
+              >
+                {overallWinner === 'A' ? `RECOMMENDED  ·  ${winsA}/${winsA + winsB} WINS` : 'EQUAL MATCH'}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* ── VS divider ─────────────────────────────────────────────────── */}
+        <div className="hp-compare-vs">VS</div>
+
+        {/* ── Column B ───────────────────────────────────────────────────── */}
+        <div className={`hp-compare-col${overallWinner === 'B' ? ' winner' : ''}`}>
+          <div className="hp-compare-col-header">MODEL B</div>
+
+          <div className="hp-compare-selectors">
+            <select
+              className="hp-select"
+              value={modelB}
+              onChange={e => setModelB(e.target.value)}
+            >
+              {MODEL_POOL.map(m => (
+                <option key={m.key} value={m.key}>{m.label}</option>
+              ))}
+            </select>
+
+            {modelB === 'custom' && (
+              <input
+                type="number"
+                className="hp-number-input"
+                min={0.1} max={700} step={0.1}
+                value={customParamsB}
+                onChange={e => setCustomParamsB(parseFloat(e.target.value) || 7)}
+                placeholder="Params (B)"
+              />
+            )}
+
+            <div className="hp-quant-row">
+              {QUANT_KEYS.map(q => (
+                <button
+                  key={q}
+                  className={`hp-quant-btn${quantB === q ? ' active' : ''}`}
+                  onClick={() => setQuantB(q)}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="hp-compare-stats">
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">VRAM Required</span>
+              <CompareStatValue raw={resultB.totalVramGb} suffix=" GB" decimals={1} win={bWins(wVram)} />
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">RAM Required</span>
+              <CompareStatValue raw={resultB.ramRequiredGb} suffix=" GB" decimals={1} win={bWins(wRam)} />
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">TPS Estimate</span>
+              <CompareStatValue raw={resultB.tps} suffix=" t/s" decimals={0} win={bWins(wTps)} />
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">Power Draw</span>
+              <CompareStatValue raw={resultB.powerW} suffix=" W" decimals={0} win={bWins(wPower)} />
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">Load Time</span>
+              <CompareStatValue raw={resultB.loadTimeSec} suffix="s" decimals={0} win={bWins(wLoad)} />
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">Fits in VRAM</span>
+              <span className={`hp-compare-stat-value${wFits === 'B' ? ' win' : wFits === 'A' ? ' lose' : ''}`}>
+                {fitsB ? '✓' : '✗'}
+              </span>
+            </div>
+            <div className="hp-compare-stat-row">
+              <span className="hp-compare-stat-label">Quality Score</span>
+              <CompareStatValue raw={qualB} suffix="%" decimals={0} win={bWins(wQuality)} />
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {(overallWinner === 'B' || overallWinner === 'tie') && (
+              <motion.div
+                key="banner-b"
+                className={`hp-compare-winner-banner${overallWinner === 'tie' ? ' tie' : ''}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.25 }}
+              >
+                {overallWinner === 'B' ? `RECOMMENDED  ·  ${winsB}/${winsA + winsB} WINS` : 'EQUAL MATCH'}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
       </div>
     </div>
   )
@@ -779,6 +1077,12 @@ const HardwarePlannerPage: React.FC = () => {
                 )}
               </AnimatePresence>
             </div>
+          </section>
+
+          {/* ── Section 7: Model Comparison ────────────────────────────────── */}
+          <section>
+            <div className="hp-section-label">07 — MODEL COMPARISON</div>
+            <ModelCompare gpuVramGb={gpuVramGb} ramGb={ramGb} />
           </section>
 
         </div>
