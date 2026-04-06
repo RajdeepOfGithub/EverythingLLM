@@ -162,6 +162,17 @@
   color: var(--text);
 }
 
+.bench-recommendation-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #fb923c;
+  padding: 6px 10px;
+  border: 1px solid rgba(251, 146, 60, 0.25);
+  border-radius: 6px;
+  background: rgba(251, 146, 60, 0.06);
+  margin-bottom: 6px;
+}
+
 .bench-no-models {
   font-family: var(--font-mono);
   font-size: 11px;

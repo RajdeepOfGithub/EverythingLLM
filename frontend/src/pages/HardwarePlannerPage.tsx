@@ -3,6 +3,7 @@ import { useCountUp } from '../hooks/useCountUp'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import type { HardwareResponse } from '../types/contracts'
+import { useRecommenderStore } from '../store/recommenderStore'
 import HardwarePlannerExplainer from '../components/animations/HardwarePlannerExplainer'
 import {
   calculateHardware,
@@ -564,6 +565,39 @@ const CONTEXT_MARKS = [512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072]
 const HardwarePlannerPage: React.FC = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
   const hasFetchedRef = useRef(false)
+  const recommendedModel = useRecommenderStore(s => s.selectedModel)
+
+  // Pre-populate model from recommender if arriving from that page
+  useEffect(() => {
+    if (!recommendedModel) return
+    // Parse params string like "7B", "13B", "70B", "3.8B" → number
+    const paramStr = recommendedModel.params.replace(/[Bb]/, '')
+    const params = parseFloat(paramStr)
+    if (isNaN(params)) return
+
+    // Find closest match in MODEL_POOL by params count
+    const match = MODEL_POOL.reduce((best, m) => {
+      if (m.key === 'custom') return best
+      return Math.abs(m.params - params) < Math.abs(best.params - params) ? m : best
+    }, MODEL_POOL[0])
+
+    const delta = Math.abs(match.params - params)
+    if (delta <= 2) {
+      dispatch({ type: 'SET_MODEL', model: match.key })
+    } else {
+      dispatch({ type: 'SET_MODEL', model: 'custom' })
+      dispatch({ type: 'SET_CUSTOM_PARAMS', params })
+    }
+
+    // Also apply quant from the recommendation
+    const quantMap: Record<string, string> = {
+      'Q4_K_M': 'Q4_K_M', 'Q5_K_M': 'Q5_K_M', 'Q8_0': 'Q8_0',
+      'F16': 'F16', 'Q2_K': 'Q2_K', 'Q3_K_M': 'Q3_K_M', 'Q6_K': 'Q6_K',
+    }
+    if (quantMap[recommendedModel.quant]) {
+      dispatch({ type: 'SET_QUANT', quant: recommendedModel.quant as any })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Attempt to reach local agent on mount
   useEffect(() => {

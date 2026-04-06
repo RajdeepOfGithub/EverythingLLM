@@ -168,6 +168,26 @@
   display: flex;
   gap: 12px;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 880px;
+}
+
+.step-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cta-button--secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.cta-button--secondary:hover:not(:disabled) {
+  border-color: var(--text);
+  box-shadow: none;
 }
 
 /* ── Sliders panel ───────────────────────────────────────────────────── */

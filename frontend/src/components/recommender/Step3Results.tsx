@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Zap } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useRecommenderStore } from '../../store/recommenderStore'
 import { post } from '../../utils/apiClient'
 import { SaveModelStackResponse } from '../../../../shared/contracts/backend_api'
@@ -36,7 +37,8 @@ const cardVariants = {
 }
 
 export default function Step3Results() {
-  const { results, hardware, useCase, sliders, setStep } = useRecommenderStore()
+  const { results, hardware, useCase, sliders, setStep, setSelectedModel } = useRecommenderStore()
+  const navigate = useNavigate()
   const best = results.find(r => r.is_best_pick)
   const rest = results.filter(r => !r.is_best_pick)
   const { displayed } = useTypewriter('Your recommended models', { speed: 28 })
@@ -44,6 +46,11 @@ export default function Step3Results() {
   const [saving, setSaving] = useState(false)
   const [savedId, setSavedId] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
+
+  // Persist best pick so Hardware Planner + Benchmarker can pre-populate
+  useEffect(() => {
+    if (best) setSelectedModel(best)
+  }, [best]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSaveStack() {
     if (!useCase || !best) return
@@ -158,19 +165,30 @@ export default function Step3Results() {
         <button className="back-button" onClick={() => setStep(2, -1)}>
           ← Back
         </button>
-        {savedId ? (
-          <span className="save-success">&#10003; Saved</span>
-        ) : (
+        <div className="step-actions-right">
+          {savedId ? (
+            <span className="save-success">&#10003; Saved</span>
+          ) : (
+            <motion.button
+              className="cta-button cta-button--secondary"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSaveStack}
+              disabled={saving || !best}
+            >
+              {saving ? 'Saving...' : 'Save Stack'}
+            </motion.button>
+          )}
           <motion.button
             className="cta-button"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={handleSaveStack}
-            disabled={saving || !best}
+            onClick={() => navigate('/hardware')}
+            disabled={!best}
           >
-            {saving ? 'Saving...' : 'Save Stack →'}
+            Next: Hardware Planner →
           </motion.button>
-        )}
+        </div>
         {saveError && <span className="save-error">{saveError}</span>}
       </div>
     </div>
