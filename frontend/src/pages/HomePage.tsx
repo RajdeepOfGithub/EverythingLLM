@@ -35,7 +35,7 @@ const STAGES = [
     title: 'Hardware\nPlanner',
     desc: 'VRAM & cost calculator',
     icon: Server,
-    status: 'soon' as const,
+    status: 'active' as const,
     route: '/hardware',
   },
   {
@@ -43,7 +43,7 @@ const STAGES = [
     title: 'Throughput\nBenchmarker',
     desc: 'llama.cpp sweep runner',
     icon: Activity,
-    status: 'soon' as const,
+    status: 'active' as const,
     route: '/benchmark',
   },
   {
@@ -51,7 +51,7 @@ const STAGES = [
     title: 'Speculative\nDecoding',
     desc: 'Draft model advisor',
     icon: Zap,
-    status: 'soon' as const,
+    status: 'active' as const,
     route: '/speculative',
   },
   {
@@ -73,33 +73,37 @@ const MODULES = [
     status: 'active' as const,
     color: 'var(--violet)',
     MiniAnim: MiniRecommenderAnim,
+    route: '/models',
   },
   {
     phase: 'Phase 02',
     icon: Server,
     name: 'Hardware Planner',
     desc: 'Calculate exact VRAM and RAM requirements. Get buy-vs-rent cost estimates before committing to hardware.',
-    status: 'soon' as const,
-    color: 'var(--text-dim)',
+    status: 'active' as const,
+    color: 'var(--blue)',
     MiniAnim: MiniHardwareAnim,
+    route: '/hardware',
   },
   {
     phase: 'Phase 03',
     icon: Activity,
     name: 'Throughput Benchmarker',
     desc: 'Connect your local agent, run llama.cpp parameter sweeps, and visualize real throughput curves on your own machine.',
-    status: 'soon' as const,
-    color: 'var(--text-dim)',
+    status: 'active' as const,
+    color: '#4ade80',
     MiniAnim: MiniBenchmarkerAnim,
+    route: '/benchmark',
   },
   {
     phase: 'Phase 04',
     icon: Zap,
     name: 'Speculative Decoding',
-    desc: 'Find the best draft model pairing for your target. Live benchmarking with an animated concept explainer.',
-    status: 'soon' as const,
-    color: 'var(--text-dim)',
+    desc: 'Find the best draft model pairing for your target. Live benchmarking with acceptance rate and speedup streaming.',
+    status: 'active' as const,
+    color: '#fb923c',
     MiniAnim: MiniSpeculativeAnim,
+    route: '/speculative',
   },
 ]
 
@@ -359,7 +363,6 @@ function PipelineSection() {
           const Icon = stage.icon
           const isActive = stage.status === 'active'
           const isGoal = stage.status === 'goal'
-          const isSoon = stage.status === 'soon'
 
           return (
             <React.Fragment key={stage.phase}>
@@ -378,8 +381,6 @@ function PipelineSection() {
                 onMouseLeave={() => setHoveredIndex(null)}
                 style={{ cursor: isActive ? 'pointer' : 'default' }}
               >
-                {isSoon && <span className="node-soon-badge">SOON</span>}
-
                 <div className="node-phase-label">
                   PHASE {stage.phase}
                   <span className="node-phase-accent" />
@@ -410,10 +411,7 @@ function PipelineSection() {
 
                 <div className="node-status-badge">
                   {isActive && (
-                    <span className="badge badge--active">● ACTIVE</span>
-                  )}
-                  {isSoon && (
-                    <span className="badge badge--soon">◎ COMING SOON</span>
+                    <span className="badge badge--active">● LIVE</span>
                   )}
                   {isGoal && (
                     <span className="badge badge--goal">★ YOUR GOAL</span>
@@ -449,6 +447,8 @@ function PipelineSection() {
 }
 
 function ModulesSection() {
+  const navigate = useNavigate()
+
   return (
     <section className="modules-section">
       <div className="section-header">
@@ -466,7 +466,7 @@ function ModulesSection() {
           return (
             <motion.div
               key={mod.name}
-              className={`module-card module-card--${mod.status}`}
+              className="module-card module-card--active"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -476,6 +476,8 @@ function ModulesSection() {
                 ease: [0.4, 0, 0.2, 1],
               }}
               whileHover={{ scale: 1.02, y: -3 }}
+              onClick={() => navigate(mod.route)}
+              style={{ cursor: 'pointer' }}
             >
               <span className="module-phase">{mod.phase}</span>
               <div className="module-icon" style={{ color: mod.color }}>
@@ -487,11 +489,7 @@ function ModulesSection() {
               <h3 className="module-name">{mod.name}</h3>
               <p className="module-desc">{mod.desc}</p>
               <div className="module-status">
-                {mod.status === 'active' ? (
-                  <span className="badge badge--active">● ACTIVE</span>
-                ) : (
-                  <span className="badge badge--soon">◎ COMING SOON</span>
-                )}
+                <span className="badge badge--active">● LIVE</span>
               </div>
             </motion.div>
           )
@@ -598,10 +596,10 @@ function CtaSection() {
     >
       <div className="cta-terminal-prompt">{'>'} READY TO OPTIMIZE?</div>
       <p className="cta-subtitle">
-        Start with Model Recommender — live now.
+        All four tools are live. Start from the beginning or jump straight to any stage.
       </p>
       <p className="cta-subtitle cta-subtitle--dim">
-        Hardware Planner, Benchmarker &amp; Speculative Decoding launching soon.
+        Model Recommender → Hardware Planner → Benchmarker → Speculative Decoding
       </p>
       <motion.button
         className="cta-btn-primary"
