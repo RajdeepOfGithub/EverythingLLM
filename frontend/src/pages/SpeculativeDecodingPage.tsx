@@ -476,6 +476,15 @@ const SpeculativeDecodingPage: React.FC = () => {
           <span className="spec-nav-module">Speculative Decoding Advisor</span>
         </nav>
 
+        {/* Demo mode banner — always visible */}
+        <div className="spec-demo-banner">
+          <span className="spec-demo-banner-label">⚠ DEMO / EDUCATIONAL MODE</span>
+          <span className="spec-demo-banner-desc">
+            Speculative decoding results on this page are simulated for illustration purposes.
+            Real dual-model inference is not yet implemented.
+          </span>
+        </div>
+
         <div className="spec-layout">
           {/* ── Left: Config panel ── */}
           <div className="spec-config-panel">

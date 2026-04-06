@@ -11,6 +11,34 @@
  */
 
 // ---------------------------------------------------------------------------
+// REST: Model Discovery
+// GET /api/v1/models
+//
+// Returns a plain array of GgufModel for backward compatibility with the
+// frontend (BenchmarkerPage + SpeculativeDecodingPage expect GgufModel[]).
+//
+// The agent internally also discovers Ollama-managed models via
+// src/models.scan_models() → { gguf_models, ollama_models }.
+// Ollama blobs are NOT GGUFs and are never included in the array below.
+// ---------------------------------------------------------------------------
+
+export interface GgufModel {
+  name: string;         // stem of the .gguf filename (no extension)
+  path: string;         // absolute path on the local machine
+  size_gb: number;      // file size in GB, rounded to 2 decimal places
+}
+
+// Shape returned by GET /api/v1/models (plain array — no wrapper object)
+export type ModelsResponse = GgufModel[];
+
+// Full internal discovery result (available via agent src/models.scan_models())
+// Not yet exposed as a dedicated REST endpoint — reserved for Phase 6.
+export interface FullModelsResult {
+  gguf_models: GgufModel[];
+  ollama_models: string[];  // e.g. ["llama3:8b", "mistral:latest"]
+}
+
+// ---------------------------------------------------------------------------
 // REST: Hardware Detection (feeds Module 2 — Hardware Planner)
 // GET /api/v1/hardware
 // ---------------------------------------------------------------------------

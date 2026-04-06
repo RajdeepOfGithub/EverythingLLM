@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react'
 import type { HardwareResponse } from '../types/contracts'
 import { useRecommenderStore } from '../store/recommenderStore'
 import HardwarePlannerExplainer from '../components/animations/HardwarePlannerExplainer'
+import { get } from '../utils/apiClient'
 import {
   calculateHardware,
   quantComparison,
@@ -44,6 +45,45 @@ const MODEL_POOL: ModelOption[] = [
 type Framework = 'llama.cpp' | 'vllm' | 'tensorrt'
 
 // ---------------------------------------------------------------------------
+// Community benchmark type (matches backend contract fields)
+// ---------------------------------------------------------------------------
+
+interface CommunityBenchmark {
+  gpu_model: string
+  vram_gb: number
+  os: string
+  framework: string
+  hf_model_id: string
+  quant: string
+  context_window: number
+  batch_size: number
+  eval_tps: number
+  prompt_tps: number
+  run_date: string
+}
+
+// ---------------------------------------------------------------------------
+// Quant info tables (07 — QUANT COMPARISON)
+// ---------------------------------------------------------------------------
+
+interface QuantInfo {
+  quant: string
+  vramSavingsPct: number   // relative to Q8_0 baseline
+  qualityLabel: string
+  recommendedFor: string
+}
+
+const QUANT_INFO: QuantInfo[] = [
+  { quant: 'Q8_0',   vramSavingsPct: 0,  qualityLabel: '≈ baseline',               recommendedFor: 'VRAM headroom, max fidelity' },
+  { quant: 'Q6_K',   vramSavingsPct: 25, qualityLabel: '≈ baseline',               recommendedFor: 'VRAM headroom, max fidelity' },
+  { quant: 'Q5_K_M', vramSavingsPct: 35, qualityLabel: '−1–2% on reasoning',       recommendedFor: 'Best quality/size balance' },
+  { quant: 'Q4_K_M', vramSavingsPct: 45, qualityLabel: '−2–4% on reasoning',       recommendedFor: 'Standard choice, strong perf' },
+  { quant: 'Q4_0',   vramSavingsPct: 47, qualityLabel: '−3–5%, less consistent',   recommendedFor: 'Tight VRAM' },
+  { quant: 'Q3_K_M', vramSavingsPct: 57, qualityLabel: '−5–8%, noticeable',        recommendedFor: 'Very tight VRAM' },
+  { quant: 'Q2_K',   vramSavingsPct: 67, qualityLabel: '−10–15%, significant',     recommendedFor: 'Experimental only' },
+]
+
+// ---------------------------------------------------------------------------
 // State / Reducer
 // ---------------------------------------------------------------------------
 
@@ -68,6 +108,9 @@ interface HWState {
 
   // UI
   explainerOpen: boolean
+
+  // Launch command copy state
+  cmdCopied: boolean
 }
 
 type Action =
@@ -84,6 +127,7 @@ type Action =
   | { type: 'SET_MANUAL_RAM'; gb: number }
   | { type: 'TOGGLE_OVERRIDE' }
   | { type: 'TOGGLE_EXPLAINER' }
+  | { type: 'SET_CMD_COPIED'; v: boolean }
 
 const initialState: HWState = {
   selectedModel: 'qwen-14b',
@@ -99,6 +143,7 @@ const initialState: HWState = {
   agentReachable: false,
   overrideDetected: false,
   explainerOpen: false,
+  cmdCopied: false,
 }
 
 function reducer(state: HWState, action: Action): HWState {
@@ -116,6 +161,7 @@ function reducer(state: HWState, action: Action): HWState {
     case 'SET_MANUAL_RAM':    return { ...state, manualRam: action.gb }
     case 'TOGGLE_OVERRIDE':   return { ...state, overrideDetected: !state.overrideDetected }
     case 'TOGGLE_EXPLAINER':  return { ...state, explainerOpen: !state.explainerOpen }
+    case 'SET_CMD_COPIED':    return { ...state, cmdCopied: action.v }
     default:                  return state
   }
 }
@@ -146,6 +192,18 @@ function resolveRam(state: HWState): number {
 function formatContext(len: number): string {
   if (len >= 1024) return `${len / 1024}K`
   return `${len}`
+}
+
+function formatCtxK(len: number): string {
+  if (len >= 1024) return `${Math.round(len / 1024)}K`
+  return `${len}`
+}
+
+function median(arr: number[]): number {
+  if (arr.length === 0) return 0
+  const sorted = [...arr].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
 }
 
 // ---------------------------------------------------------------------------
@@ -557,6 +615,246 @@ const StatsGrid: React.FC<{ result: HWCalcResult }> = ({ result }) => {
 }
 
 // ---------------------------------------------------------------------------
+// Section 06: Community Results
+// ---------------------------------------------------------------------------
+
+interface CommunityResultsProps {
+  gpuModel: string | null
+  framework: Framework
+}
+
+const CommunityResults: React.FC<CommunityResultsProps> = ({ gpuModel, framework }) => {
+  const [benchmarks, setBenchmarks] = useState<CommunityBenchmark[]>([])
+  const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
+
+  useEffect(() => {
+    setLoading(true)
+    setFetchError(false)
+    get<CommunityBenchmark[]>('/api/v1/community/benchmarks')
+      .then(data => {
+        setBenchmarks(Array.isArray(data) ? data : [])
+        setLoading(false)
+      })
+      .catch(() => {
+        setFetchError(true)
+        setLoading(false)
+      })
+  }, [])
+
+  if (!gpuModel) return null
+
+  // Filter: gpu_model contains detected gpu name (case-insensitive), framework matches
+  const filtered = benchmarks.filter(b => {
+    const gpuMatch = b.gpu_model.toLowerCase().includes(gpuModel.toLowerCase()) ||
+                     gpuModel.toLowerCase().includes(b.gpu_model.toLowerCase())
+    const fwMatch  = b.framework.toLowerCase() === framework.toLowerCase()
+    return gpuMatch && fwMatch
+  })
+
+  const n = filtered.length
+  const medianTps = n > 0 ? Math.round(median(filtered.map(b => b.eval_tps))) : 0
+  const ctxMin = n > 0 ? Math.min(...filtered.map(b => b.context_window)) : 0
+  const ctxMax = n > 0 ? Math.max(...filtered.map(b => b.context_window)) : 0
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="hp-section-label">06 — COMMUNITY RESULTS</div>
+      <div className="hp-community-panel">
+        <div className="hp-community-gpu-label">
+          {gpuModel} &middot; {framework}
+        </div>
+
+        {loading && (
+          <div className="hp-community-loading">Loading community data...</div>
+        )}
+
+        {fetchError && !loading && (
+          <div className="hp-community-empty">
+            Could not reach community endpoint — results unavailable.
+          </div>
+        )}
+
+        {!loading && !fetchError && n === 0 && (
+          <div className="hp-community-empty">
+            No results yet for this GPU — run a benchmark to be the first.
+          </div>
+        )}
+
+        {!loading && !fetchError && n > 0 && (
+          <div className="hp-community-stat-row">
+            <span className="hp-community-tps">
+              {medianTps} TPS (median)
+            </span>
+            <span className="hp-community-dot">&middot;</span>
+            <span className="hp-community-n">
+              n={n}
+            </span>
+            <span className="hp-community-dot">&middot;</span>
+            <span className="hp-community-ctx">
+              ctx {formatCtxK(ctxMin)}–{formatCtxK(ctxMax)}
+            </span>
+            {n >= 5 ? (
+              <span className="hp-community-ci">95% CI ±10%</span>
+            ) : (
+              <span className="hp-community-low-sample">low sample — n={n}</span>
+            )}
+          </div>
+        )}
+      </div>
+    </motion.section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Section 07: Quant Comparison Table
+// ---------------------------------------------------------------------------
+
+interface QuantComparisonTableProps {
+  selectedQuant: QuantKey
+}
+
+const QuantComparisonTable: React.FC<QuantComparisonTableProps> = ({ selectedQuant }) => {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.05 }}
+    >
+      <div className="hp-section-label">07 — QUANT COMPARISON</div>
+      <div className="hp-quant-table-panel">
+        <table className="hp-quant-table">
+          <thead>
+            <tr>
+              <th className="hp-quant-th">QUANT</th>
+              <th className="hp-quant-th">VRAM SAVINGS</th>
+              <th className="hp-quant-th">QUALITY IMPACT</th>
+              <th className="hp-quant-th">RECOMMENDED FOR</th>
+            </tr>
+          </thead>
+          <tbody>
+            {QUANT_INFO.map((row, i) => {
+              const isSelected = row.quant === selectedQuant
+              return (
+                <motion.tr
+                  key={row.quant}
+                  className={`hp-quant-tr${isSelected ? ' hp-quant-tr-selected' : ''}`}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.04, duration: 0.2 }}
+                >
+                  <td className="hp-quant-td hp-quant-td-name">{row.quant}</td>
+                  <td className="hp-quant-td hp-quant-td-savings">
+                    {row.vramSavingsPct === 0
+                      ? <span className="hp-quant-savings-baseline">baseline</span>
+                      : <span className="hp-quant-savings-value">~{row.vramSavingsPct}% less VRAM</span>
+                    }
+                  </td>
+                  <td className="hp-quant-td hp-quant-td-quality">{row.qualityLabel}</td>
+                  <td className="hp-quant-td hp-quant-td-rec">{row.recommendedFor}</td>
+                </motion.tr>
+              )
+            })}
+          </tbody>
+        </table>
+        <p className="hp-quant-disclaimer">
+          Quality estimates are relative approximations. See{' '}
+          <a
+            href="https://github.com/EleutherAI/lm-evaluation-harness"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hp-quant-disclaimer-link"
+          >
+            LM Evaluation Harness
+          </a>
+          {' '}and{' '}
+          <a
+            href="https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hp-quant-disclaimer-link"
+          >
+            Open LLM Leaderboard
+          </a>
+          {' '}for rigorous benchmarks.
+        </p>
+      </div>
+    </motion.section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Section 08: Launch Command Generator
+// ---------------------------------------------------------------------------
+
+interface LaunchCommandProps {
+  framework: Framework
+  gpuLayers: number
+  contextLen: number
+  batchSize: number
+  agentReachable: boolean
+  dispatch: React.Dispatch<Action>
+  cmdCopied: boolean
+}
+
+const LaunchCommand: React.FC<LaunchCommandProps> = ({
+  framework,
+  gpuLayers,
+  contextLen,
+  batchSize,
+  agentReachable,
+  dispatch,
+  cmdCopied,
+}) => {
+  const threads = Math.max(4, (navigator.hardwareConcurrency || 8) - 2)
+  const ropeFlag = contextLen > 4096 ? ' --rope-scale 2' : ''
+  const ngl = agentReachable ? gpuLayers : 99
+
+  const cmd = framework === 'llama.cpp'
+    ? `llama-cli -m ./model.gguf -ngl ${ngl} -c ${contextLen} -b ${batchSize} --threads ${threads}${ropeFlag}`
+    : framework === 'vllm'
+    ? `python -m vllm.entrypoints.openai.api_server --model ./model --max-model-len ${contextLen} --tensor-parallel-size 1`
+    : `trtllm-build --model_dir ./model --output_dir ./engine --max_seq_len ${contextLen} --max_batch_size ${batchSize}`
+
+  function handleCopy() {
+    navigator.clipboard.writeText(cmd).then(() => {
+      dispatch({ type: 'SET_CMD_COPIED', v: true })
+      setTimeout(() => dispatch({ type: 'SET_CMD_COPIED', v: false }), 2000)
+    })
+  }
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.1 }}
+    >
+      <div className="hp-section-label">08 — LAUNCH COMMAND</div>
+      <div className="hp-launch-panel">
+        <div className="hp-launch-code-wrap">
+          <pre className="hp-launch-code">{cmd}</pre>
+          <button
+            className={`hp-launch-copy-btn${cmdCopied ? ' copied' : ''}`}
+            onClick={handleCopy}
+          >
+            {cmdCopied ? 'COPIED ✓' : 'COPY'}
+          </button>
+        </div>
+        {framework !== 'llama.cpp' && (
+          <p className="hp-launch-note">
+            Full CLI flags depend on your installation. Shown above is a minimal invocation.
+          </p>
+        )}
+      </div>
+    </motion.section>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
 
@@ -595,7 +893,7 @@ const HardwarePlannerPage: React.FC = () => {
       'F16': 'F16', 'Q2_K': 'Q2_K', 'Q3_K_M': 'Q3_K_M', 'Q6_K': 'Q6_K',
     }
     if (quantMap[recommendedModel.quant]) {
-      dispatch({ type: 'SET_QUANT', quant: recommendedModel.quant as any })
+      dispatch({ type: 'SET_QUANT', quant: recommendedModel.quant as QuantKey })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -653,6 +951,21 @@ const HardwarePlannerPage: React.FC = () => {
 
   const showCloud = result.verdict === 'over'
 
+  // Detected GPU name for community results section
+  const detectedGpuName = (state.agentReachable && !state.overrideDetected && state.detectedHardware)
+    ? (state.detectedHardware.gpu.name ?? null)
+    : null
+
+  // Display name for selected model (for header banner)
+  const selectedModelLabel = state.selectedModel === 'custom'
+    ? `Custom ${state.customParams}B model`
+    : MODEL_POOL.find(m => m.key === state.selectedModel)?.label ?? state.selectedModel
+
+  // If a recommended model arrived from store, use its name instead
+  const configuringLabel = recommendedModel
+    ? recommendedModel.model_name
+    : selectedModelLabel
+
   return (
     <MotionConfig reducedMotion="user">
       <div className="hp-page">
@@ -665,6 +978,22 @@ const HardwarePlannerPage: React.FC = () => {
         </nav>
 
         <div className="hp-content">
+
+          {/* ── Page header ────────────────────────────────────────────────── */}
+          <div className="hp-page-header">
+            <h1 className="hp-page-title">HARDWARE CONFIGURATION</h1>
+            <p className="hp-page-subtitle">Configure your selected model for optimal performance</p>
+            {recommendedModel ? (
+              <div className="hp-configuring-badge">
+                CONFIGURING: <span className="hp-configuring-name">{configuringLabel}</span>
+              </div>
+            ) : (
+              <div className="hp-no-model-hint">
+                No model selected —{' '}
+                <a href="/models" className="hp-no-model-link">go to Model Recommender first</a>
+              </div>
+            )}
+          </div>
 
           {/* ── Section 1: Inputs ──────────────────────────────────────────── */}
           <section>
@@ -1072,12 +1401,37 @@ const HardwarePlannerPage: React.FC = () => {
                       })}
                     </tbody>
                   </table>
+                  <p className="hp-cloud-disclaimer">
+                    Prices approximate as of early 2025 — verify on provider before deciding.
+                  </p>
                 </div>
               </motion.section>
             )}
           </AnimatePresence>
 
-          {/* ── Section 6: Explainer collapsible ──────────────────────────── */}
+          {/* ── Section 06: Community Results ──────────────────────────────── */}
+          {detectedGpuName && (
+            <CommunityResults
+              gpuModel={detectedGpuName}
+              framework={state.framework}
+            />
+          )}
+
+          {/* ── Section 07: Quant Comparison Table ────────────────────────── */}
+          <QuantComparisonTable selectedQuant={state.quant} />
+
+          {/* ── Section 08: Launch Command ─────────────────────────────────── */}
+          <LaunchCommand
+            framework={state.framework}
+            gpuLayers={state.gpuLayers}
+            contextLen={state.contextLen}
+            batchSize={state.batchSize}
+            agentReachable={state.agentReachable}
+            dispatch={dispatch}
+            cmdCopied={state.cmdCopied}
+          />
+
+          {/* ── Explainer collapsible ──────────────────────────────────────── */}
           <section>
             <div className="hp-explainer-wrap">
               <button
@@ -1113,9 +1467,9 @@ const HardwarePlannerPage: React.FC = () => {
             </div>
           </section>
 
-          {/* ── Section 7: Model Comparison ────────────────────────────────── */}
+          {/* ── Model Comparison ────────────────────────────────────────────── */}
           <section>
-            <div className="hp-section-label">07 — MODEL COMPARISON</div>
+            <div className="hp-section-label">— MODEL COMPARISON</div>
             <ModelCompare gpuVramGb={gpuVramGb} ramGb={ramGb} />
           </section>
 
