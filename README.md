@@ -66,8 +66,8 @@ The **local agent** runs as a background process on your machine — no data lea
 | Phase 4: Throughput Benchmarker (real llama.cpp inference, live WebSocket TPS chart, save to DB) | ✅ Complete |
 | Phase 5: Speculative Decoding Advisor (draft recommendations, live acceptance rate + speedup, token stream) | ✅ Complete |
 | User Journey Fixes: cross-tool navigation, recommended model flows into Hardware Planner + Benchmarker | ✅ Complete |
-| Phase 6: Dashboard + Community | ⏳ Upcoming |
-| Phase 7: Polish + Desktop App (Tauri) | ⏳ Upcoming |
+| Phase 6: Community Benchmark Platform (HF live registry, what's installed detector, community DB, "others with your GPU", quant comparison tab, llama.cpp command generator) | ⏳ In Planning |
+| Phase 7: Polish + Desktop App (Tauri) + Real Speculative Decoding (dual-model llama.cpp) | ⏳ Upcoming |
 
 ### Live Infrastructure (Phase 1)
 
