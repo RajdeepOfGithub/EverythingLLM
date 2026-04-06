@@ -507,8 +507,13 @@ const BenchmarkerPage: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState<string>('')
   const [simMode, setSimMode] = useState(false)
   const recommendedModel = useRecommenderStore(s => s.selectedModel)
+  const benchmarkConfig = useRecommenderStore(s => s.benchmarkConfig)
+  const setBenchmarkConfig = useRecommenderStore(s => s.setBenchmarkConfig)
 
-  // Config
+  // Hint from benchmarkConfig (one-time, cleared after read)
+  const [configHint, setConfigHint] = useState<string | null>(null)
+
+  // Config — defaults; overridden on mount if benchmarkConfig is set
   const [config, setConfig] = useState<BenchConfig>({
     context_size: 2048,
     batch_size: 512,
@@ -562,7 +567,22 @@ const BenchmarkerPage: React.FC = () => {
         signal: AbortSignal.timeout(3000),
       })
       if (res.ok) {
-        const data: ModelInfo[] = await res.json()
+        const raw = await res.json()
+
+        // The contract defines ModelsResponse as GgufModel[] (plain array).
+        // Guard against a future agent that might return the full FullModelsResult
+        // shape { gguf_models, ollama_models } — Ollama models are never GGUF
+        // file paths and cannot be run by the Benchmarker.
+        let data: ModelInfo[]
+        if (Array.isArray(raw)) {
+          data = raw as ModelInfo[]
+        } else if (raw && Array.isArray((raw as { gguf_models?: ModelInfo[] }).gguf_models)) {
+          // Defensive: only use gguf_models, discard ollama_models entirely
+          data = (raw as { gguf_models: ModelInfo[] }).gguf_models
+        } else {
+          data = []
+        }
+
         setModels(data)
         if (data.length > 0 && !selectedModel) {
           setSelectedModel(data[0].path)
@@ -585,6 +605,19 @@ const BenchmarkerPage: React.FC = () => {
       if (healthIntervalRef.current) clearInterval(healthIntervalRef.current)
       if (wsRef.current) wsRef.current.close()
     }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fix 6: pre-fill from benchmarkConfig if arriving from Hardware Planner
+  useEffect(() => {
+    if (!benchmarkConfig) return
+    setConfig({
+      context_size: benchmarkConfig.context_size,
+      batch_size: benchmarkConfig.batch_size,
+      threads: benchmarkConfig.threads,
+      gpu_layers: benchmarkConfig.gpu_layers,
+    })
+    setConfigHint(benchmarkConfig.model_hint)
+    setBenchmarkConfig(null) // one-time read — clear immediately
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---- WebSocket ----
@@ -775,9 +808,12 @@ const BenchmarkerPage: React.FC = () => {
             {/* Model selector */}
             <div className="bench-model-select-wrapper">
               <label className="bench-field-label">MODEL</label>
-              {recommendedModel && (
+              {(configHint || recommendedModel) && (
                 <div className="bench-recommendation-hint">
-                  Recommended: {recommendedModel.model_name} ({recommendedModel.params} {recommendedModel.quant})
+                  {configHint
+                    ? `Config from Hardware Planner: ${configHint}`
+                    : `Recommended: ${recommendedModel!.model_name} (${recommendedModel!.params} ${recommendedModel!.quant})`
+                  }
                 </div>
               )}
               {models.length === 0 ? (

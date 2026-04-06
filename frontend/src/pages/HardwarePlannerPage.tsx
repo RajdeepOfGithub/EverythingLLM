@@ -2,6 +2,7 @@ import React, { useEffect, useReducer, useRef, useState } from 'react'
 import { useCountUp } from '../hooks/useCountUp'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import type { HardwareResponse } from '../types/contracts'
 import { useRecommenderStore } from '../store/recommenderStore'
 import HardwarePlannerExplainer from '../components/animations/HardwarePlannerExplainer'
@@ -12,8 +13,6 @@ import {
   QUANT_KEYS,
   GRID_GPUS,
   gridFitResult,
-  CLOUD_OPTIONS,
-  cloudFits,
   QUALITY_RETENTION,
   type QuantKey,
   type HWCalcResult,
@@ -41,8 +40,6 @@ const MODEL_POOL: ModelOption[] = [
   { key: 'llama-3b',      label: 'Llama 3.2 3B',              params: 3    },
   { key: 'custom',        label: 'Custom (manual entry)',      params: 0    },
 ]
-
-type Framework = 'llama.cpp' | 'vllm' | 'tensorrt'
 
 // ---------------------------------------------------------------------------
 // Community benchmark type (matches backend contract fields)
@@ -91,7 +88,6 @@ interface HWState {
   // Model
   selectedModel: string
   customParams: number
-  framework: Framework
 
   // Controls
   quant: QuantKey
@@ -116,7 +112,6 @@ interface HWState {
 type Action =
   | { type: 'SET_MODEL'; model: string }
   | { type: 'SET_CUSTOM_PARAMS'; params: number }
-  | { type: 'SET_FRAMEWORK'; fw: Framework }
   | { type: 'SET_QUANT'; quant: QuantKey }
   | { type: 'SET_CONTEXT'; len: number }
   | { type: 'SET_BATCH'; size: number }
@@ -132,7 +127,6 @@ type Action =
 const initialState: HWState = {
   selectedModel: 'qwen-14b',
   customParams: 7,
-  framework: 'llama.cpp',
   quant: 'Q4_K_M',
   contextLen: 4096,
   batchSize: 1,
@@ -150,7 +144,6 @@ function reducer(state: HWState, action: Action): HWState {
   switch (action.type) {
     case 'SET_MODEL':         return { ...state, selectedModel: action.model }
     case 'SET_CUSTOM_PARAMS': return { ...state, customParams: action.params }
-    case 'SET_FRAMEWORK':     return { ...state, framework: action.fw }
     case 'SET_QUANT':         return { ...state, quant: action.quant }
     case 'SET_CONTEXT':       return { ...state, contextLen: action.len }
     case 'SET_BATCH':         return { ...state, batchSize: action.size }
@@ -620,10 +613,10 @@ const StatsGrid: React.FC<{ result: HWCalcResult }> = ({ result }) => {
 
 interface CommunityResultsProps {
   gpuModel: string | null
-  framework: Framework
 }
 
-const CommunityResults: React.FC<CommunityResultsProps> = ({ gpuModel, framework }) => {
+const CommunityResults: React.FC<CommunityResultsProps> = ({ gpuModel }) => {
+  const framework = 'llama.cpp'
   const [benchmarks, setBenchmarks] = useState<CommunityBenchmark[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState(false)
@@ -792,39 +785,53 @@ const QuantComparisonTable: React.FC<QuantComparisonTableProps> = ({ selectedQua
 // ---------------------------------------------------------------------------
 
 interface LaunchCommandProps {
-  framework: Framework
   gpuLayers: number
   contextLen: number
   batchSize: number
   agentReachable: boolean
   dispatch: React.Dispatch<Action>
   cmdCopied: boolean
+  activeModelName: string
+  activeQuant: string
+  navigate: ReturnType<typeof useNavigate>
+  setBenchmarkConfig: (cfg: import('../store/recommenderStore').BenchmarkConfig | null) => void
 }
 
 const LaunchCommand: React.FC<LaunchCommandProps> = ({
-  framework,
   gpuLayers,
   contextLen,
   batchSize,
   agentReachable,
   dispatch,
   cmdCopied,
+  activeModelName,
+  activeQuant,
+  navigate,
+  setBenchmarkConfig,
 }) => {
   const threads = Math.max(4, (navigator.hardwareConcurrency || 8) - 2)
   const ropeFlag = contextLen > 4096 ? ' --rope-scale 2' : ''
   const ngl = agentReachable ? gpuLayers : 99
 
-  const cmd = framework === 'llama.cpp'
-    ? `llama-cli -m ./model.gguf -ngl ${ngl} -c ${contextLen} -b ${batchSize} --threads ${threads}${ropeFlag}`
-    : framework === 'vllm'
-    ? `python -m vllm.entrypoints.openai.api_server --model ./model --max-model-len ${contextLen} --tensor-parallel-size 1`
-    : `trtllm-build --model_dir ./model --output_dir ./engine --max_seq_len ${contextLen} --max_batch_size ${batchSize}`
+  const cmd = `llama-cli -m ./model.gguf -ngl ${ngl} -c ${contextLen} -b ${batchSize} --threads ${threads}${ropeFlag}`
 
   function handleCopy() {
     navigator.clipboard.writeText(cmd).then(() => {
       dispatch({ type: 'SET_CMD_COPIED', v: true })
       setTimeout(() => dispatch({ type: 'SET_CMD_COPIED', v: false }), 2000)
     })
+  }
+
+  function handleRunInBenchmarker() {
+    setBenchmarkConfig({
+      gpu_layers: ngl,
+      context_size: contextLen,
+      batch_size: batchSize,
+      threads,
+      model_hint: activeModelName,
+      quant: activeQuant,
+    })
+    navigate('/benchmark')
   }
 
   return (
@@ -834,21 +841,40 @@ const LaunchCommand: React.FC<LaunchCommandProps> = ({
       transition={{ duration: 0.3, delay: 0.1 }}
     >
       <div className="hp-section-label">08 — LAUNCH COMMAND</div>
+
+      {/* Framework nudge card (Fix 5) */}
+      <div className="hp-framework-nudge">
+        <div className="hp-framework-nudge-label">WHICH FRAMEWORK?</div>
+        <div className="hp-framework-nudge-line">
+          Running locally for personal use → llama.cpp{' '}
+          <span className="hp-framework-nudge-check">✓ you&apos;re on the right track</span>
+        </div>
+        <div className="hp-framework-nudge-line">
+          Building an API or serving multiple users → vLLM or TensorRT-LLM
+        </div>
+        <div className="hp-framework-nudge-line">
+          Max control, custom kernels → llama.cpp with manual flags
+        </div>
+      </div>
+
       <div className="hp-launch-panel">
         <div className="hp-launch-code-wrap">
           <pre className="hp-launch-code">{cmd}</pre>
-          <button
-            className={`hp-launch-copy-btn${cmdCopied ? ' copied' : ''}`}
-            onClick={handleCopy}
-          >
-            {cmdCopied ? 'COPIED ✓' : 'COPY'}
-          </button>
+          <div className="hp-launch-btn-row">
+            <button
+              className={`hp-launch-copy-btn${cmdCopied ? ' copied' : ''}`}
+              onClick={handleCopy}
+            >
+              {cmdCopied ? 'COPIED ✓' : 'COPY'}
+            </button>
+            <button
+              className="hp-launch-run-btn"
+              onClick={handleRunInBenchmarker}
+            >
+              RUN IN BENCHMARKER →
+            </button>
+          </div>
         </div>
-        {framework !== 'llama.cpp' && (
-          <p className="hp-launch-note">
-            Full CLI flags depend on your installation. Shown above is a minimal invocation.
-          </p>
-        )}
       </div>
     </motion.section>
   )
@@ -863,7 +889,9 @@ const CONTEXT_MARKS = [512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072]
 const HardwarePlannerPage: React.FC = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
   const hasFetchedRef = useRef(false)
+  const navigate = useNavigate()
   const recommendedModel = useRecommenderStore(s => s.selectedModel)
+  const setBenchmarkConfig = useRecommenderStore(s => s.setBenchmarkConfig)
 
   // Pre-populate model from recommender if arriving from that page
   useEffect(() => {
@@ -916,9 +944,28 @@ const HardwarePlannerPage: React.FC = () => {
   }, [])
 
   // Derived values
-  const paramsBillions = resolveParams(state)
+  // Fix 2: if arriving from Recommender, use its params directly so any HF model works
+  const paramsBillions = (() => {
+    if (recommendedModel) {
+      const stripped = recommendedModel.params.replace(/[Bb]/, '')
+      const parsed = parseFloat(stripped)
+      if (!isNaN(parsed) && parsed > 0) return parsed
+    }
+    return resolveParams(state)
+  })()
   const gpuVramGb      = resolveVram(state)
   const ramGb          = resolveRam(state)
+
+  // Active quant: prefer recommendedModel.quant if no user override; state.quant otherwise
+  // (The useEffect already dispatches SET_QUANT on mount from recommendedModel, so state.quant
+  //  is already synced. Keep state.quant as the source of truth for the controls.)
+  const activeQuant = state.quant
+
+  // Active model display name for command generator and hint
+  const activeModelName = recommendedModel?.model_name
+    ?? (state.selectedModel === 'custom'
+      ? `Custom ${state.customParams}B model`
+      : (MODEL_POOL.find(m => m.key === state.selectedModel)?.label ?? state.selectedModel))
 
   const result = calculateHardware({
     paramsBillions,
@@ -949,22 +996,13 @@ const HardwarePlannerPage: React.FC = () => {
     return best
   })()
 
-  const showCloud = result.verdict === 'over'
-
   // Detected GPU name for community results section
   const detectedGpuName = (state.agentReachable && !state.overrideDetected && state.detectedHardware)
     ? (state.detectedHardware.gpu.name ?? null)
     : null
 
-  // Display name for selected model (for header banner)
-  const selectedModelLabel = state.selectedModel === 'custom'
-    ? `Custom ${state.customParams}B model`
-    : MODEL_POOL.find(m => m.key === state.selectedModel)?.label ?? state.selectedModel
-
-  // If a recommended model arrived from store, use its name instead
-  const configuringLabel = recommendedModel
-    ? recommendedModel.model_name
-    : selectedModelLabel
+  // Display name for header banner — uses activeModelName computed above
+  const configuringLabel = activeModelName
 
   return (
     <MotionConfig reducedMotion="user">
@@ -1034,20 +1072,6 @@ const HardwarePlannerPage: React.FC = () => {
                   </div>
                 )}
 
-                <div className="hp-field">
-                  <div className="hp-field-label">Inference framework</div>
-                  <div className="hp-radio-group">
-                    {(['llama.cpp', 'vllm', 'tensorrt'] as Framework[]).map(fw => (
-                      <button
-                        key={fw}
-                        className={`hp-radio-btn${state.framework === fw ? ' active' : ''}`}
-                        onClick={() => dispatch({ type: 'SET_FRAMEWORK', fw })}
-                      >
-                        {fw}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
 
               {/* Hardware group */}
@@ -1194,26 +1218,24 @@ const HardwarePlannerPage: React.FC = () => {
                     />
                   </div>
 
-                  {/* GPU layers — llama.cpp only */}
-                  {state.framework === 'llama.cpp' && (
-                    <div className="hp-slider-field">
-                      <div className="hp-slider-header">
-                        <span className="hp-slider-name">GPU Layers</span>
-                        <span className="hp-slider-value">{state.gpuLayers}%</span>
-                      </div>
-                      <input
-                        type="range"
-                        className="hp-slider"
-                        min={0}
-                        max={100}
-                        step={5}
-                        value={state.gpuLayers}
-                        onChange={e =>
-                          dispatch({ type: 'SET_GPU_LAYERS', pct: parseInt(e.target.value) })
-                        }
-                      />
+                  {/* GPU layers */}
+                  <div className="hp-slider-field">
+                    <div className="hp-slider-header">
+                      <span className="hp-slider-name">GPU Layers</span>
+                      <span className="hp-slider-value">{state.gpuLayers}%</span>
                     </div>
-                  )}
+                    <input
+                      type="range"
+                      className="hp-slider"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={state.gpuLayers}
+                      onChange={e =>
+                        dispatch({ type: 'SET_GPU_LAYERS', pct: parseInt(e.target.value) })
+                      }
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1350,70 +1372,10 @@ const HardwarePlannerPage: React.FC = () => {
             </div>
           </section>
 
-          {/* ── Section 5: Buy vs Rent (shown only when verdict = over) ───── */}
-          <AnimatePresence>
-            {showCloud && (
-              <motion.section
-                key="cloud"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="hp-section-label">05 — CLOUD ALTERNATIVES</div>
-                <div className="hp-cloud-panel">
-                  <div className="hp-cloud-title">CLOUD ALTERNATIVES</div>
-                  <div className="hp-cloud-subtitle">
-                    Since this model exceeds your local VRAM, here are cloud options:
-                  </div>
-                  <table className="hp-cloud-table">
-                    <thead>
-                      <tr>
-                        <th>PROVIDER</th>
-                        <th>GPU</th>
-                        <th>VRAM</th>
-                        <th>$/HR</th>
-                        <th>FITS MODEL</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {CLOUD_OPTIONS.map((opt, i) => {
-                        const fits = cloudFits(paramsBillions, state.quant, opt.vram)
-                        return (
-                          <motion.tr
-                            key={`${opt.provider}-${opt.gpu}`}
-                            initial={{ opacity: 0, x: -8 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.05, duration: 0.2 }}
-                          >
-                            <td className="provider">{opt.provider}</td>
-                            <td className="gpu-name">{opt.gpu}</td>
-                            <td className="vram-col">{opt.vram} GB</td>
-                            <td className="price-col">${opt.price_hr.toFixed(2)}</td>
-                            <td>
-                              {fits
-                                ? <span className="hp-cloud-fits-yes">✓</span>
-                                : <span className="hp-cloud-fits-no">✗</span>
-                              }
-                            </td>
-                          </motion.tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                  <p className="hp-cloud-disclaimer">
-                    Prices approximate as of early 2025 — verify on provider before deciding.
-                  </p>
-                </div>
-              </motion.section>
-            )}
-          </AnimatePresence>
-
           {/* ── Section 06: Community Results ──────────────────────────────── */}
           {detectedGpuName && (
             <CommunityResults
               gpuModel={detectedGpuName}
-              framework={state.framework}
             />
           )}
 
@@ -1422,13 +1384,16 @@ const HardwarePlannerPage: React.FC = () => {
 
           {/* ── Section 08: Launch Command ─────────────────────────────────── */}
           <LaunchCommand
-            framework={state.framework}
             gpuLayers={state.gpuLayers}
             contextLen={state.contextLen}
             batchSize={state.batchSize}
             agentReachable={state.agentReachable}
             dispatch={dispatch}
             cmdCopied={state.cmdCopied}
+            activeModelName={activeModelName}
+            activeQuant={activeQuant}
+            navigate={navigate}
+            setBenchmarkConfig={setBenchmarkConfig}
           />
 
           {/* ── Explainer collapsible ──────────────────────────────────────── */}

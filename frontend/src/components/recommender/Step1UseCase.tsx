@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react'
-import { motion } from 'framer-motion'
+import React, { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Code2, FileText, MessageSquare, Brain, BookOpen } from 'lucide-react'
 import { useRecommenderStore } from '../../store/recommenderStore'
 import { useTypewriter } from '../../hooks/useTypewriter'
@@ -34,15 +34,20 @@ const cardVariants = {
 }
 
 export default function Step1UseCase() {
-  const { useCase, setUseCase, setStep, setHardware } = useRecommenderStore()
+  const { useCase, setUseCase, setStep, setHardware, hardware } = useRecommenderStore()
   const { displayed } = useTypewriter('What do you need a model for?', { speed: 26 })
+  const [detecting, setDetecting] = useState(true)
 
   useEffect(() => {
     fetch('http://localhost:7878/api/v1/hardware')
       .then(r => r.json())
-      .then(setHardware)
+      .then((data) => {
+        setHardware(data)
+        setDetecting(false)
+      })
       .catch(() => {
         // agent offline — graceful degrade, hardware stays null
+        setDetecting(false)
       })
   }, [setHardware])
 
@@ -53,6 +58,46 @@ export default function Step1UseCase() {
         <p className="step-subtitle">
           Select your primary use case. We'll score models based on what matters most for your workflow.
         </p>
+
+        <AnimatePresence mode="wait">
+          {detecting ? (
+            <motion.div
+              key="detecting"
+              className="hw-badge hw-badge--detecting"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span className="hw-badge__dot hw-badge__dot--pulse" />
+              Detecting hardware...
+            </motion.div>
+          ) : hardware !== null ? (
+            <motion.div
+              key="detected"
+              className="hw-badge hw-badge--detected"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <span className="hw-badge__dot hw-badge__dot--green" />
+              {hardware.gpu.name ?? 'GPU detected'} · {hardware.gpu.vram_total_gb ?? '?'}GB VRAM
+            </motion.div>
+          ) : (
+            <motion.div
+              key="not-detected"
+              className="hw-badge hw-badge--missing"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <span className="hw-badge__dot hw-badge__dot--orange" />
+              Hardware not detected — recommendations unfiltered
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <motion.div

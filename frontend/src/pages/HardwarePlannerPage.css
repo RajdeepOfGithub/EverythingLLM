@@ -800,77 +800,6 @@
   letter-spacing: 0.05em;
 }
 
-/* ── Section 5: Buy vs Rent ──────────────────────────────────────────────── */
-.hp-cloud-panel {
-  background: rgba(255, 51, 0, 0.03);
-  border: 1px solid rgba(255, 51, 0, 0.25);
-  border-radius: var(--radius-card);
-  padding: 28px;
-}
-
-.hp-cloud-title {
-  font-family: var(--font-display);
-  font-size: 28px;
-  color: var(--red);
-  letter-spacing: 0.04em;
-  margin-bottom: 6px;
-}
-
-.hp-cloud-subtitle {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  margin-bottom: 20px;
-}
-
-.hp-cloud-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.hp-cloud-table th {
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 8px 14px;
-  text-align: left;
-  border-bottom: 1px solid rgba(255, 51, 0, 0.2);
-}
-
-.hp-cloud-table td {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: #C8C8C8;
-  padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 230, 0, 0.05);
-}
-
-.hp-cloud-table td.provider { color: var(--text); }
-.hp-cloud-table td.gpu-name  { color: var(--text); }
-.hp-cloud-table td.vram-col  { color: var(--violet); }
-.hp-cloud-table td.price-col { color: var(--blue); }
-
-.hp-cloud-fits-yes {
-  color: var(--green);
-  font-size: 14px;
-}
-
-.hp-cloud-fits-no {
-  color: var(--red);
-  font-size: 14px;
-}
-
-/* ── Cloud disclaimer ─────────────────────────────────────────────────────── */
-.hp-cloud-disclaimer {
-  margin-top: 10px;
-  margin-bottom: 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: #555;
-}
-
 /* ── Section 6: Explainer collapsible ────────────────────────────────────── */
 .hp-explainer-wrap {
   background: var(--surface);
@@ -1412,11 +1341,10 @@
 }
 
 .hp-launch-code-wrap {
-  position: relative;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
-  padding: 16px 56px 16px 16px;
+  padding: 16px;
 }
 
 .hp-launch-code {
@@ -1430,20 +1358,18 @@
 }
 
 .hp-launch-copy-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   background: transparent;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.12em;
   color: var(--muted);
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px 12px;
   border-radius: var(--radius-sm);
   transition: color 0.15s, background 0.15s;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .hp-launch-copy-btn:hover {
@@ -1465,6 +1391,67 @@
   letter-spacing: 0.04em;
 }
 
+/* ── Framework nudge card (Fix 5) ───────────────────────────────────────── */
+.hp-framework-nudge {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hp-framework-nudge-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 2px;
+}
+
+.hp-framework-nudge-line {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.5;
+}
+
+.hp-framework-nudge-check {
+  color: #4ade80;
+  font-weight: 500;
+}
+
+/* ── Launch command button row (Fix 4) ──────────────────────────────────── */
+.hp-launch-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.hp-launch-run-btn {
+  background: transparent;
+  border: 1px solid var(--blue);
+  border-radius: var(--radius-sm);
+  color: var(--blue);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+
+.hp-launch-run-btn:hover {
+  background: rgba(0, 229, 255, 0.08);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
 /* ── Mobile additions ────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .hp-page-title {
@@ -1480,13 +1467,7 @@
     padding: 20px;
   }
 
-  .hp-launch-code-wrap {
-    padding-right: 16px;
-    padding-top: 36px;
-  }
-
-  .hp-launch-copy-btn {
-    top: 8px;
-    right: 8px;
+  .hp-launch-btn-row {
+    flex-wrap: wrap;
   }
 }

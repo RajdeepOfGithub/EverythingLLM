@@ -13,6 +13,15 @@ export interface ModelResult {
   is_best_pick: boolean
 }
 
+export interface BenchmarkConfig {
+  gpu_layers: number
+  context_size: number
+  batch_size: number
+  threads: number
+  model_hint: string   // display name for the recommendation hint
+  quant: string
+}
+
 interface RecommenderState {
   step: 1 | 2 | 3
   direction: 1 | -1     // animation direction: 1=forward, -1=back
@@ -22,6 +31,7 @@ interface RecommenderState {
   results: ModelResult[]
   isLoading: boolean
   selectedModel: ModelResult | null   // best pick carried to other pages
+  benchmarkConfig: BenchmarkConfig | null
   setStep: (step: 1 | 2 | 3, direction: 1 | -1) => void
   setUseCase: (uc: UseCase) => void
   setSlider: (key: keyof SliderPreferences, val: number) => void
@@ -29,17 +39,19 @@ interface RecommenderState {
   setResults: (r: ModelResult[]) => void
   setLoading: (v: boolean) => void
   setSelectedModel: (m: ModelResult | null) => void
+  setBenchmarkConfig: (cfg: BenchmarkConfig | null) => void
 }
 
 export const useRecommenderStore = create<RecommenderState>((set) => ({
   step: 1,
   direction: 1,
   useCase: null,
-  sliders: { quality: 3, speed: 3, fit: 3, context: 3 },
+  sliders: { quality: 5, speed: 5, fit: 5, context: 5 },
   hardware: null,
   results: [],
   isLoading: false,
   selectedModel: null,
+  benchmarkConfig: null,
   setStep: (step, direction) => set({ step, direction }),
   setUseCase: (useCase) => set({ useCase }),
   setSlider: (key, val) => set((s) => ({ sliders: { ...s.sliders, [key]: val } })),
@@ -47,4 +59,5 @@ export const useRecommenderStore = create<RecommenderState>((set) => ({
   setResults: (results) => set({ results }),
   setLoading: (isLoading) => set({ isLoading }),
   setSelectedModel: (selectedModel) => set({ selectedModel }),
+  setBenchmarkConfig: (benchmarkConfig) => set({ benchmarkConfig }),
 }))

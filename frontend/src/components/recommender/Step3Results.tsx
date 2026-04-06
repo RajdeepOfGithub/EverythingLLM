@@ -3,8 +3,6 @@ import { motion } from 'framer-motion'
 import { Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useRecommenderStore } from '../../store/recommenderStore'
-import { post } from '../../utils/apiClient'
-import { SaveModelStackResponse } from '../../../../shared/contracts/backend_api'
 import { useTypewriter } from '../../hooks/useTypewriter'
 import { useCountUp } from '../../hooks/useCountUp'
 import VRAMBar from './VRAMBar'
@@ -37,47 +35,28 @@ const cardVariants = {
 }
 
 export default function Step3Results() {
-  const { results, hardware, useCase, sliders, setStep, setSelectedModel } = useRecommenderStore()
+  const { results, hardware, setStep, setSelectedModel } = useRecommenderStore()
   const navigate = useNavigate()
-  const best = results.find(r => r.is_best_pick)
-  const rest = results.filter(r => !r.is_best_pick)
   const { displayed } = useTypewriter('Your recommended models', { speed: 28 })
   const vramTotal = hardware?.gpu.vram_total_gb ?? null
-  const [saving, setSaving] = useState(false)
-  const [savedId, setSavedId] = useState<string | null>(null)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const [fitsFilter, setFitsFilter] = useState(true)
+
+  const allBest = results.find(r => r.is_best_pick)
+  const allRest = results.filter(r => !r.is_best_pick)
+
+  // When hardware is known and fitsFilter is ON, filter by VRAM fit
+  const shouldFilter = fitsFilter && hardware !== null && vramTotal !== null
+  const best = shouldFilter && allBest && allBest.vram_required_gb > vramTotal
+    ? undefined
+    : allBest
+  const rest = shouldFilter
+    ? allRest.filter(m => m.vram_required_gb <= vramTotal!)
+    : allRest
 
   // Persist best pick so Hardware Planner + Benchmarker can pre-populate
   useEffect(() => {
-    if (best) setSelectedModel(best)
-  }, [best]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function handleSaveStack() {
-    if (!useCase || !best) return
-    setSaving(true)
-    setSaveError(null)
-    const totalVram = results.reduce((sum, r) => sum + r.vram_required_gb, 0)
-    const simultaneousFit = vramTotal !== null && totalVram <= vramTotal
-    try {
-      const resp = await post<SaveModelStackResponse>('/models/save', {
-        stack: results.map(r => ({
-          use_case: useCase,
-          hf_model_id: r.hf_model_id,
-          model_name: r.model_name,
-          sliders,
-          vram_required_gb: r.vram_required_gb,
-          can_run_simultaneously: simultaneousFit,
-        })),
-        total_vram_required_gb: totalVram,
-        simultaneous_fit: simultaneousFit,
-      })
-      setSavedId(resp.stack_id)
-    } catch {
-      setSaveError('Failed to save. Try again.')
-    } finally {
-      setSaving(false)
-    }
-  }
+    if (allBest) setSelectedModel(allBest)
+  }, [allBest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="step-container">
@@ -90,6 +69,22 @@ export default function Step3Results() {
             : 'Connect the local agent for hardware-aware scoring.'}
         </p>
       </div>
+
+      {hardware !== null && (
+        <div className="vram-filter-row">
+          <span className={`vram-filter-label${fitsFilter ? ' vram-filter-label--active' : ''}`}>
+            FITS MY GPU
+          </span>
+          <button
+            className={`vram-filter-toggle${fitsFilter ? ' vram-filter-toggle--on' : ''}`}
+            onClick={() => setFitsFilter(v => !v)}
+            aria-pressed={fitsFilter}
+            aria-label="Toggle FITS MY GPU filter"
+          >
+            <span className="vram-filter-thumb" />
+          </button>
+        </div>
+      )}
 
       <motion.div
         className="results-list"
@@ -121,7 +116,9 @@ export default function Step3Results() {
                   <span className="metric-value tps"><Zap size={11} /> <AnimatedTPS value={best.tps_estimate} delay={300} /></span>
                 </div>
                 <div className="metric">
-                  <span className="metric-label">VRAM</span>
+                  <span className="metric-label">
+                    VRAM <span className="metric-label-sub">base weight</span>
+                  </span>
                   <VRAMBar used={best.vram_required_gb} total={vramTotal} />
                 </div>
               </div>
@@ -152,7 +149,9 @@ export default function Step3Results() {
                   </span>
                 </div>
                 <div className="metric">
-                  <span className="metric-label">VRAM</span>
+                  <span className="metric-label">
+                    VRAM <span className="metric-label-sub">base weight</span>
+                  </span>
                   <VRAMBar used={model.vram_required_gb} total={vramTotal} />
                 </div>
               </div>
@@ -166,30 +165,16 @@ export default function Step3Results() {
           ← Back
         </button>
         <div className="step-actions-right">
-          {savedId ? (
-            <span className="save-success">&#10003; Saved</span>
-          ) : (
-            <motion.button
-              className="cta-button cta-button--secondary"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleSaveStack}
-              disabled={saving || !best}
-            >
-              {saving ? 'Saving...' : 'Save Stack'}
-            </motion.button>
-          )}
           <motion.button
             className="cta-button"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate('/hardware')}
-            disabled={!best}
+            disabled={!allBest}
           >
             Next: Hardware Planner →
           </motion.button>
         </div>
-        {saveError && <span className="save-error">{saveError}</span>}
       </div>
     </div>
   )

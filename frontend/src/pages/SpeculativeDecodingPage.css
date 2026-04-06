@@ -303,31 +303,36 @@
   width: fit-content;
 }
 
-.spec-draft-acceptance-bar {
+.spec-draft-hf-row {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 6px;
+  min-width: 0;
 }
 
-.spec-draft-acceptance-track {
-  flex: 1;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.spec-draft-acceptance-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.4s ease;
-}
-
-.spec-draft-acceptance-pct {
+.spec-draft-hf-id {
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 600;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.spec-draft-hf-link {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.35);
   flex-shrink: 0;
+  transition: color 0.15s;
+  text-decoration: none;
+}
+
+.spec-draft-hf-link:hover {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .spec-draft-vram {

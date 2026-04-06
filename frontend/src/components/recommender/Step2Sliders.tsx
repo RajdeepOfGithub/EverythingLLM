@@ -33,7 +33,7 @@ interface SliderRowProps {
 function SliderRow({ sliderKey, label, desc, color }: SliderRowProps) {
   const { sliders, setSlider } = useRecommenderStore()
   const value = sliders[sliderKey]
-  const pct = `${((value - 1) / 4) * 100}%`
+  const pct = `${((value - 1) / 9) * 100}%`
 
   return (
     <div className="slider-row">
@@ -46,7 +46,7 @@ function SliderRow({ sliderKey, label, desc, color }: SliderRowProps) {
           <input
             type="range"
             min={1}
-            max={5}
+            max={10}
             step={1}
             value={value}
             className="forge-slider"
@@ -64,7 +64,7 @@ function SliderRow({ sliderKey, label, desc, color }: SliderRowProps) {
             <span>Max</span>
           </div>
         </div>
-        <span className="slider-value">{value} / 5</span>
+        <span className="slider-value">{value} / 10</span>
       </div>
     </div>
   )
@@ -74,6 +74,7 @@ export default function Step2Sliders() {
   const { sliders, hardware, setResults, setStep } = useRecommenderStore()
   const { displayed } = useTypewriter('Set your priorities', { speed: 30 })
   const [fetching, setFetching] = useState(false)
+  const hardwareUnknown = hardware === null
 
   async function handleFind() {
     setFetching(true)
@@ -111,6 +112,21 @@ export default function Step2Sliders() {
           />
         ))}
       </motion.div>
+
+      {/* Hardware unknown warning */}
+      <AnimatePresence>
+        {hardwareUnknown && (
+          <motion.p
+            className="hardware-unknown-warning"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            ⚠ Hardware not detected — VRAM fit estimates are unreliable
+          </motion.p>
+        )}
+      </AnimatePresence>
 
       {/* HuggingFace fetch status — shown only while in flight */}
       <AnimatePresence>

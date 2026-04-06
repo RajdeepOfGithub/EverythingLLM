@@ -2,6 +2,7 @@ import { SliderPreferences } from '../../../shared/contracts/backend_api'
 import { HardwareResponse } from '../../../shared/contracts/local_agent_api'
 import { ModelResult } from '../store/recommenderStore'
 import { fetchHFModels, HFModel } from './hfRegistry'
+import { modelWeightsVram, type QuantKey } from './hwCalc'
 
 // ---------------------------------------------------------------------------
 // Static fallback pool
@@ -17,13 +18,17 @@ interface PoolEntry {
   base_speed: number
 }
 
+// Static pool vram_required_gb values are base model weights only (no KV cache,
+// no runtime overhead). Calculated via modelWeightsVram(params, 'Q4_K_M'):
+//   params * 1e9 * 0.5 bytes/param / 1e9 = params * 0.5 GB
+// The Hardware Planner adds KV cache + 10% overhead on top — this is intentional.
 export const MODEL_POOL: PoolEntry[] = [
   {
     hf_model_id: 'Qwen/Qwen2.5-Coder-32B-Instruct',
     model_name: 'Qwen 2.5 Coder 32B',
     params: '32B',
     quant: 'Q4_K_M',
-    vram_required_gb: 20,
+    vram_required_gb: 16.0, // modelWeightsVram(32, 'Q4_K_M')
     base_quality: 94,
     base_speed: 18,
   },
@@ -32,7 +37,7 @@ export const MODEL_POOL: PoolEntry[] = [
     model_name: 'DeepSeek Coder V2 Lite',
     params: '16B',
     quant: 'Q4_K_M',
-    vram_required_gb: 10,
+    vram_required_gb: 8.0, // modelWeightsVram(16, 'Q4_K_M')
     base_quality: 82,
     base_speed: 35,
   },
@@ -41,7 +46,7 @@ export const MODEL_POOL: PoolEntry[] = [
     model_name: 'Llama 3.3 70B',
     params: '70B',
     quant: 'Q4_K_M',
-    vram_required_gb: 43,
+    vram_required_gb: 35.0, // modelWeightsVram(70, 'Q4_K_M')
     base_quality: 96,
     base_speed: 8,
   },
@@ -50,7 +55,7 @@ export const MODEL_POOL: PoolEntry[] = [
     model_name: 'Mistral Small 3.1 24B',
     params: '24B',
     quant: 'Q4_K_M',
-    vram_required_gb: 14,
+    vram_required_gb: 12.0, // modelWeightsVram(24, 'Q4_K_M')
     base_quality: 84,
     base_speed: 26,
   },
@@ -59,7 +64,7 @@ export const MODEL_POOL: PoolEntry[] = [
     model_name: 'Gemma 3 27B',
     params: '27B',
     quant: 'Q4_K_M',
-    vram_required_gb: 17,
+    vram_required_gb: 13.5, // modelWeightsVram(27, 'Q4_K_M')
     base_quality: 88,
     base_speed: 20,
   },
@@ -68,7 +73,7 @@ export const MODEL_POOL: PoolEntry[] = [
     model_name: 'Qwen 2.5 14B',
     params: '14B',
     quant: 'Q4_K_M',
-    vram_required_gb: 9,
+    vram_required_gb: 7.0, // modelWeightsVram(14, 'Q4_K_M')
     base_quality: 80,
     base_speed: 38,
   },
@@ -104,12 +109,14 @@ function inferParamsBillions(modelId: string): number | null {
 }
 
 /**
- * Convert a file size in bytes to a VRAM requirement in GB.
- * Adds 10 % overhead for runtime (consistent with hwCalc.ts).
+ * Convert a file size in bytes to a base weight VRAM estimate in GB.
+ * No overhead is added — this is the raw quantized model weight size.
+ * The Hardware Planner adds KV cache + runtime overhead on top of this;
+ * the Recommender shows only base weights because context window is not
+ * known at scoring time.
  */
 function bytesToVramGb(bytes: number): number {
-  const modelGb = bytes / 1e9
-  return parseFloat((modelGb * 1.1).toFixed(2))
+  return parseFloat((bytes / 1e9).toFixed(2))
 }
 
 /**
@@ -182,16 +189,28 @@ function pickBestQuant(quantSizes: Record<string, number>): string | null {
 // Convert HFModel → PoolEntry
 // ---------------------------------------------------------------------------
 
+// QuantKey values that hwCalc.modelWeightsVram understands
+const HW_CALC_QUANT_KEYS = new Set<string>(['Q2_K', 'Q4_K_M', 'Q5_K_M', 'Q8_0', 'F16'])
+
 function hfModelToPoolEntry(model: HFModel): PoolEntry | null {
   const quant = pickBestQuant(model.quantSizes)
   if (!quant) return null
 
-  const bytes = model.quantSizes[quant]
-  const vram_required_gb = bytesToVramGb(bytes)
-
   const paramsBillions = inferParamsBillions(model.modelId) ?? 7  // default 7B when unknown
   const base_quality = qualityFromQuant(quant)
   const base_speed = speedFromParamsAndQuant(paramsBillions, quant)
+
+  // Prefer modelWeightsVram (formula-based, matches Hardware Planner base weight)
+  // when the quant is a known hwCalc key. Fall back to raw file bytes otherwise.
+  let vram_required_gb: number
+  if (HW_CALC_QUANT_KEYS.has(quant)) {
+    vram_required_gb = parseFloat(
+      modelWeightsVram(paramsBillions, quant as QuantKey).toFixed(2)
+    )
+  } else {
+    const bytes = model.quantSizes[quant]
+    vram_required_gb = bytesToVramGb(bytes)
+  }
 
   // Derive human label like "7B" from inferred params
   const paramsLabel = `${paramsBillions}B`
@@ -205,6 +224,23 @@ function hfModelToPoolEntry(model: HFModel): PoolEntry | null {
     base_quality,
     base_speed,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Context window scoring
+// ---------------------------------------------------------------------------
+
+/**
+ * Derive an approximate context score (0–100) from a model's ID.
+ * Checks for common context-size suffixes in the name.
+ * Models that advertise larger context windows score higher.
+ */
+function contextScoreFromModelId(modelId: string): number {
+  const id = modelId.toLowerCase()
+  if (id.includes('128k')) return 95
+  if (id.includes('32k'))  return 75
+  if (id.includes('8k'))   return 55
+  return 60 // unknown context — conservative default
 }
 
 // ---------------------------------------------------------------------------
@@ -235,7 +271,7 @@ function scorePool(
     } else {
       fitScore = 0
     }
-    const contextScore = 80 // constant — context window data not in pool
+    const contextScore = contextScoreFromModelId(m.hf_model_id)
 
     const composite =
       qW * qualityScore +

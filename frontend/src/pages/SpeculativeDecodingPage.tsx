@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
+import { ExternalLink } from 'lucide-react'
 import SpeculativeDecodingExplainer from '../components/animations/SpeculativeDecodingExplainer'
 import { useCountUp } from '../hooks/useCountUp'
 import { AGENT_BASE_URL, createMetricsSocket } from '../utils/agentClient'
@@ -142,10 +143,7 @@ function DraftCandidateCard({
   selected: boolean
   onSelect: () => void
 }) {
-  const hasRate = candidate.community_acceptance_rate !== null
-  const rate = candidate.community_acceptance_rate ?? 0
-  const ratePct = Math.round(rate * 100)
-  const rateColor = rate >= 0.7 ? '#4ade80' : rate >= 0.5 ? '#fb923c' : '#f87171'
+  const hasHfId = !!candidate.hf_model_id
 
   return (
     <motion.div
@@ -161,26 +159,25 @@ function DraftCandidateCard({
 
       <div className="spec-draft-name">{candidate.name}</div>
 
+      {hasHfId && (
+        <div className="spec-draft-hf-row">
+          <span className="spec-draft-hf-id">{candidate.hf_model_id}</span>
+          <a
+            className="spec-draft-hf-link"
+            href={`https://huggingface.co/${candidate.hf_model_id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            aria-label={`Open ${candidate.hf_model_id} on HuggingFace`}
+          >
+            <ExternalLink size={12} />
+          </a>
+        </div>
+      )}
+
       <div className="spec-draft-speedup">
         {candidate.estimated_speedup.toFixed(1)}x SPEEDUP
       </div>
-
-      {hasRate && (
-        <div className="spec-draft-acceptance-bar">
-          <div className="spec-draft-acceptance-track">
-            <motion.div
-              className="spec-draft-acceptance-fill"
-              style={{ background: rateColor, width: `${ratePct}%` }}
-              initial={{ width: 0 }}
-              animate={{ width: `${ratePct}%` }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-            />
-          </div>
-          <span className="spec-draft-acceptance-pct" style={{ color: rateColor }}>
-            {ratePct}%
-          </span>
-        </div>
-      )}
 
       <div className="spec-draft-vram">
         {candidate.vram_required_gb.toFixed(1)} GB VRAM
@@ -478,7 +475,7 @@ const SpeculativeDecodingPage: React.FC = () => {
 
         {/* Demo mode banner — always visible */}
         <div className="spec-demo-banner">
-          <span className="spec-demo-banner-label">⚠ DEMO / EDUCATIONAL MODE</span>
+          <span className="spec-demo-banner-label">⚠ EDUCATIONAL MODE</span>
           <span className="spec-demo-banner-desc">
             Speculative decoding results on this page are simulated for illustration purposes.
             Real dual-model inference is not yet implemented.

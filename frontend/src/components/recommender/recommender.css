@@ -45,6 +45,55 @@
   letter-spacing: 0.02em;
 }
 
+/* ── Hardware detection badge ────────────────────────────────────────── */
+.hw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  margin-top: 6px;
+}
+
+.hw-badge--detecting {
+  color: #666;
+}
+
+.hw-badge--detected {
+  color: #4ade80;
+}
+
+.hw-badge--missing {
+  color: #fb923c;
+}
+
+.hw-badge__dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.hw-badge__dot--pulse {
+  background: #666;
+  animation: hw-dot-pulse 1.2s ease-in-out infinite;
+}
+
+.hw-badge__dot--green {
+  background: #4ade80;
+}
+
+.hw-badge__dot--orange {
+  background: #fb923c;
+}
+
+@keyframes hw-dot-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+
 /* ── Use case grid ───────────────────────────────────────────────────── */
 .usecase-grid {
   display: flex;
@@ -443,6 +492,17 @@
   letter-spacing: 0.12em;
 }
 
+/* Inline clarification appended to metric labels (e.g. "VRAM base weight") */
+.metric-label-sub {
+  font-size: 8px;
+  color: var(--muted);
+  opacity: 0.55;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  font-weight: 400;
+  margin-left: 3px;
+}
+
 .metric-value {
   font-family: var(--font-mono);
   font-size: 14px;
@@ -539,4 +599,76 @@
   margin: 8px 0 0;
   padding: 0;
   text-align: left;
+}
+
+/* ── Hardware unknown warning ────────────────────────────────────────── */
+.hardware-unknown-warning {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #fb923c;
+  letter-spacing: 0.02em;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+  max-width: 680px;
+}
+
+/* ── VRAM filter row ─────────────────────────────────────────────────── */
+.vram-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 800px;
+  padding: 0 2px;
+}
+
+.vram-filter-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: color 0.15s;
+}
+
+.vram-filter-label--active {
+  color: var(--blue);
+}
+
+/* Pill toggle */
+.vram-filter-toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+}
+
+.vram-filter-toggle--on {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+}
+
+.vram-filter-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.15s ease, background 0.15s;
+}
+
+.vram-filter-toggle--on .vram-filter-thumb {
+  transform: translateX(16px);
+  background: var(--blue);
 }
