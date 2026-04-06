@@ -4,6 +4,7 @@ import BenchmarkerExplainer from '../components/animations/BenchmarkerExplainer'
 import { useCountUp } from '../hooks/useCountUp'
 import { AGENT_BASE_URL } from '../utils/agentClient'
 import { post } from '../utils/apiClient'
+import { useRecommenderStore } from '../store/recommenderStore'
 import type {
   BenchmarkStatus,
   BenchmarkStartResponse,
@@ -277,6 +278,7 @@ const BenchmarkerPage: React.FC = () => {
   const [models, setModels] = useState<ModelInfo[]>([])
   const [selectedModel, setSelectedModel] = useState<string>('')
   const [simMode, setSimMode] = useState(false)
+  const recommendedModel = useRecommenderStore(s => s.selectedModel)
 
   // Config
   const [config, setConfig] = useState<BenchConfig>({
@@ -545,6 +547,11 @@ const BenchmarkerPage: React.FC = () => {
             {/* Model selector */}
             <div className="bench-model-select-wrapper">
               <label className="bench-field-label">MODEL</label>
+              {recommendedModel && (
+                <div className="bench-recommendation-hint">
+                  Recommended: {recommendedModel.model_name} ({recommendedModel.params} {recommendedModel.quant})
+                </div>
+              )}
               {models.length === 0 ? (
                 <div className="bench-no-models">No .gguf models found — running in simulation mode</div>
               ) : (

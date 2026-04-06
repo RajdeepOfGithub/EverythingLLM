@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion'
 import { useRecommenderStore } from '../store/recommenderStore'
 import Step1UseCase from '../components/recommender/Step1UseCase'
@@ -42,7 +43,11 @@ export default function ModelRecommenderPage() {
               </React.Fragment>
             ))}
           </div>
-          <div className="rec-nav-right" />
+          <div className="rec-nav-right">
+            <Link className="rec-nav-link" to="/hardware">Hardware</Link>
+            <Link className="rec-nav-link" to="/benchmark">Benchmark</Link>
+            <Link className="rec-nav-link" to="/speculative">Speculative</Link>
+          </div>
         </nav>
 
         {/* Two-column layout */}

@@ -65,6 +65,7 @@ The **local agent** runs as a background process on your machine — no data lea
 | Phase 3: Hardware Planner (VRAM calc, fit grid, model comparison) | ✅ Complete |
 | Phase 4: Throughput Benchmarker (real llama.cpp inference, live WebSocket TPS chart, save to DB) | ✅ Complete |
 | Phase 5: Speculative Decoding Advisor (draft recommendations, live acceptance rate + speedup, token stream) | ✅ Complete |
+| User Journey Fixes: cross-tool navigation, recommended model flows into Hardware Planner + Benchmarker | ✅ Complete |
 | Phase 6: Dashboard + Community | ⏳ Upcoming |
 | Phase 7: Polish + Desktop App (Tauri) | ⏳ Upcoming |
 

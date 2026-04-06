@@ -21,12 +21,14 @@ interface RecommenderState {
   hardware: HardwareResponse | null
   results: ModelResult[]
   isLoading: boolean
+  selectedModel: ModelResult | null   // best pick carried to other pages
   setStep: (step: 1 | 2 | 3, direction: 1 | -1) => void
   setUseCase: (uc: UseCase) => void
   setSlider: (key: keyof SliderPreferences, val: number) => void
   setHardware: (hw: HardwareResponse) => void
   setResults: (r: ModelResult[]) => void
   setLoading: (v: boolean) => void
+  setSelectedModel: (m: ModelResult | null) => void
 }
 
 export const useRecommenderStore = create<RecommenderState>((set) => ({
@@ -37,10 +39,12 @@ export const useRecommenderStore = create<RecommenderState>((set) => ({
   hardware: null,
   results: [],
   isLoading: false,
+  selectedModel: null,
   setStep: (step, direction) => set({ step, direction }),
   setUseCase: (useCase) => set({ useCase }),
   setSlider: (key, val) => set((s) => ({ sliders: { ...s.sliders, [key]: val } })),
   setHardware: (hardware) => set({ hardware }),
   setResults: (results) => set({ results }),
   setLoading: (isLoading) => set({ isLoading }),
+  setSelectedModel: (selectedModel) => set({ selectedModel }),
 }))
