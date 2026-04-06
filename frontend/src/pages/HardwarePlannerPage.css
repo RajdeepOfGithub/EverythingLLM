@@ -862,6 +862,15 @@
   font-size: 14px;
 }
 
+/* ── Cloud disclaimer ─────────────────────────────────────────────────────── */
+.hp-cloud-disclaimer {
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #555;
+}
+
 /* ── Section 6: Explainer collapsible ────────────────────────────────────── */
 .hp-explainer-wrap {
   background: var(--surface);
@@ -1143,5 +1152,341 @@
     width: calc(50% - 20px);
     height: 1px;
     transform: none;
+  }
+}
+
+/* ── Page header (reframe) ───────────────────────────────────────────────── */
+.hp-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 8px;
+}
+
+.hp-page-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  color: var(--text);
+  letter-spacing: 0.06em;
+  margin: 0;
+  text-shadow: var(--glow-yellow);
+}
+
+.hp-page-subtitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.hp-configuring-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.hp-configuring-name {
+  color: var(--blue);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+}
+
+.hp-no-model-hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.hp-no-model-link {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.hp-no-model-link:hover {
+  color: var(--text-dim);
+}
+
+/* ── Section 06: Community Results ──────────────────────────────────────── */
+.hp-community-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.hp-community-gpu-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hp-community-loading {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+.hp-community-empty {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.hp-community-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hp-community-tps {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  color: var(--blue);
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+}
+
+.hp-community-dot {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.hp-community-n {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.hp-community-ctx {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.hp-community-ci {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+}
+
+.hp-community-low-sample {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--orange);
+  border: 1px solid rgba(255, 140, 0, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+}
+
+/* ── Section 07: Quant Comparison Table ──────────────────────────────────── */
+.hp-quant-table-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 28px;
+  backdrop-filter: blur(10px);
+}
+
+.hp-quant-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.hp-quant-th {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 8px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.hp-quant-tr {
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.hp-quant-tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.hp-quant-tr-selected {
+  border-left-color: var(--blue);
+  background: rgba(0, 229, 255, 0.04);
+}
+
+.hp-quant-td {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(255, 230, 0, 0.05);
+  vertical-align: middle;
+}
+
+.hp-quant-td-name {
+  color: var(--text);
+  letter-spacing: 0.06em;
+  font-size: 12px;
+}
+
+.hp-quant-tr-selected .hp-quant-td-name {
+  color: var(--blue);
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.3);
+}
+
+.hp-quant-savings-baseline {
+  color: var(--muted);
+}
+
+.hp-quant-savings-value {
+  color: var(--violet);
+  letter-spacing: 0.02em;
+}
+
+.hp-quant-td-quality {
+  color: #888;
+}
+
+.hp-quant-td-rec {
+  color: #888;
+}
+
+.hp-quant-disclaimer {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #555;
+  margin-top: 16px;
+  margin-bottom: 0;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+}
+
+.hp-quant-disclaimer-link {
+  color: #666;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.hp-quant-disclaimer-link:hover {
+  color: var(--muted);
+}
+
+/* ── Section 08: Launch Command ──────────────────────────────────────────── */
+.hp-launch-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 28px;
+  backdrop-filter: blur(10px);
+}
+
+.hp-launch-code-wrap {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 16px 56px 16px 16px;
+}
+
+.hp-launch-code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: #f0f0f0;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.6;
+}
+
+.hp-launch-copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+  text-transform: uppercase;
+}
+
+.hp-launch-copy-btn:hover {
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.hp-launch-copy-btn.copied {
+  color: var(--green);
+  letter-spacing: 0.08em;
+}
+
+.hp-launch-note {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 12px;
+  margin-bottom: 0;
+  letter-spacing: 0.04em;
+}
+
+/* ── Mobile additions ────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .hp-page-title {
+    font-size: 24px;
+  }
+
+  .hp-quant-table {
+    min-width: 560px;
+  }
+
+  .hp-quant-table-panel {
+    overflow-x: auto;
+    padding: 20px;
+  }
+
+  .hp-launch-code-wrap {
+    padding-right: 16px;
+    padding-top: 36px;
+  }
+
+  .hp-launch-copy-btn {
+    top: 8px;
+    right: 8px;
   }
 }

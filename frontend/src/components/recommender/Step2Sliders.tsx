@@ -1,5 +1,5 @@
-import React from 'react'
-import { motion } from 'framer-motion'
+import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useRecommenderStore } from '../../store/recommenderStore'
 import { scoreModels } from '../../utils/scoreModels'
 import { useTypewriter } from '../../hooks/useTypewriter'
@@ -73,11 +73,17 @@ function SliderRow({ sliderKey, label, desc, color }: SliderRowProps) {
 export default function Step2Sliders() {
   const { sliders, hardware, setResults, setStep } = useRecommenderStore()
   const { displayed } = useTypewriter('Set your priorities', { speed: 30 })
+  const [fetching, setFetching] = useState(false)
 
-  function handleFind() {
-    const results = scoreModels(sliders, hardware)
-    setResults(results)
-    setStep(3, 1)
+  async function handleFind() {
+    setFetching(true)
+    try {
+      const results = await scoreModels(sliders, hardware)
+      setResults(results)
+      setStep(3, 1)
+    } finally {
+      setFetching(false)
+    }
   }
 
   return (
@@ -106,6 +112,21 @@ export default function Step2Sliders() {
         ))}
       </motion.div>
 
+      {/* HuggingFace fetch status — shown only while in flight */}
+      <AnimatePresence>
+        {fetching && (
+          <motion.p
+            className="hf-fetch-status"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            Fetching latest models from HuggingFace...
+          </motion.p>
+        )}
+      </AnimatePresence>
+
       <div className="step-actions">
         <button className="back-button" onClick={() => setStep(1, -1)}>
           ← Back
@@ -113,10 +134,11 @@ export default function Step2Sliders() {
         <motion.button
           className="cta-button"
           onClick={handleFind}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          disabled={fetching}
+          whileHover={{ scale: fetching ? 1 : 1.02 }}
+          whileTap={{ scale: fetching ? 1 : 0.98 }}
         >
-          Find My Models →
+          {fetching ? 'Scoring...' : 'Find My Models →'}
         </motion.button>
       </div>
     </div>

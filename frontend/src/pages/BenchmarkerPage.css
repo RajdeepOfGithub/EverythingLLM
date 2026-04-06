@@ -625,6 +625,182 @@
   }
 }
 
+/* ── Community submission section ───────────────────────────────────── */
+.bench-community-section {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.bench-community-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.bench-community-consent {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  line-height: 1.6;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.bench-community-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bench-community-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  min-height: 36px;
+}
+
+.bench-community-row:last-child {
+  border-bottom: none;
+}
+
+.bench-community-row:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.bench-community-key {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.bench-community-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* Inline editable inputs — match table row, underline only */
+.bench-community-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 0;
+  width: 100%;
+  transition: border-color 0.2s;
+  border-radius: 0;
+}
+
+.bench-community-input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.bench-community-input:focus {
+  border-bottom-color: var(--blue);
+}
+
+/* Remove number input spinners */
+.bench-community-input[type='number']::-webkit-inner-spin-button,
+.bench-community-input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.bench-community-input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* Submit button — blue accent, full width, matches bench-save-btn pattern */
+.bench-community-submit-btn {
+  width: 100%;
+  padding: 13px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 8px;
+  color: var(--blue);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.bench-community-submit-btn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.18);
+}
+
+.bench-community-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Success state */
+.bench-community-success {
+  width: 100%;
+  padding: 13px;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 8px;
+  color: #4ade80;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.bench-community-success::before {
+  content: '✓ ';
+}
+
+/* Error state */
+.bench-community-error {
+  width: 100%;
+  padding: 13px;
+  background: rgba(251, 146, 60, 0.08);
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  border-radius: 8px;
+  color: #fb923c;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
 /* ── Simulation mode banner ──────────────────────────────────────────── */
 .bench-sim-banner {
   display: flex;

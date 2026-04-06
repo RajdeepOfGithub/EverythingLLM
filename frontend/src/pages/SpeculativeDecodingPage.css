@@ -55,6 +55,33 @@
   color: var(--muted);
 }
 
+/* ── Demo / Educational mode banner ─────────────────────────────────── */
+.spec-demo-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 16px 48px 0;
+  padding: 12px 16px;
+  background: rgba(251, 146, 60, 0.1);
+  border: 1px solid rgba(251, 146, 60, 0.4);
+  border-radius: 6px;
+}
+
+.spec-demo-banner-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fb923c;
+}
+
+.spec-demo-banner-desc {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 /* ── Two-column layout ───────────────────────────────────────────────── */
 .spec-layout {
   flex: 1;

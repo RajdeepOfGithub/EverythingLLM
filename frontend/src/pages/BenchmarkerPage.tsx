@@ -41,6 +41,23 @@ interface TickData {
 
 type PageStatus = 'idle' | BenchmarkStatus
 
+// Community submission — mirrors POST /api/v1/community/benchmarks body
+interface CommunitySubmission {
+  gpu_model: string
+  vram_gb: number
+  os: string
+  framework: string
+  hf_model_id: string
+  quant: string
+  context_window: number
+  batch_size: number
+  eval_tps: number
+  prompt_tps: number
+  run_date: string
+}
+
+type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error'
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -230,6 +247,217 @@ function ResultsCard({ ticks, config }: { ticks: TickData[]; config: BenchConfig
         </div>
       </div>
     </motion.div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Community submission section
+// ---------------------------------------------------------------------------
+
+interface CommunitySubmissionSectionProps {
+  ticks: TickData[]
+  config: BenchConfig
+  selectedModelPath: string
+  models: ModelInfo[]
+}
+
+function CommunitySubmissionSection({
+  ticks,
+  config,
+  selectedModelPath,
+  models,
+}: CommunitySubmissionSectionProps) {
+  // Derive final TPS values from the last tick (most stable reading)
+  const lastTick = ticks[ticks.length - 1]
+  const peakEval = lastTick ? parseFloat(lastTick.eval_tps.toFixed(1)) : 0
+  const peakPrompt = lastTick ? parseFloat(lastTick.prompt_eval_tps.toFixed(1)) : 0
+
+  // Attempt to detect quant from model filename (e.g. "Meta-Llama-3-8B-Q4_K_M.gguf" → "Q4_K_M")
+  const modelName = models.find(m => m.path === selectedModelPath)?.name ?? ''
+  const quantMatch = modelName.match(/[Qq]\d[_A-Za-z0-9]*/)
+  const detectedQuant = quantMatch ? quantMatch[0].toUpperCase() : ''
+
+  const [form, setForm] = React.useState<CommunitySubmission>({
+    gpu_model: '',
+    vram_gb: 0,
+    os: '',
+    framework: 'llama.cpp',
+    hf_model_id: '',
+    quant: detectedQuant,
+    context_window: config.context_size,
+    batch_size: config.batch_size,
+    eval_tps: peakEval,
+    prompt_tps: peakPrompt,
+    run_date: new Date().toISOString().split('T')[0],
+  })
+
+  const [submitStatus, setSubmitStatus] = React.useState<SubmitStatus>('idle')
+
+  // Fetch hardware for pre-population — best-effort, silent on failure
+  React.useEffect(() => {
+    async function fetchHardware() {
+      try {
+        const res = await fetch(`${AGENT_BASE_URL}/hardware`, {
+          signal: AbortSignal.timeout(3000),
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        setForm(prev => ({
+          ...prev,
+          gpu_model: data?.gpu?.name ?? '',
+          vram_gb: data?.gpu?.vram_total_gb ?? 0,
+          os: data?.system?.os ?? '',
+        }))
+      } catch {
+        // agent offline — leave fields blank for user to fill
+      }
+    }
+    fetchHardware()
+  }, [])
+
+  const handleChange = (field: keyof CommunitySubmission, value: string | number) => {
+    setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleSubmit = async () => {
+    setSubmitStatus('submitting')
+    try {
+      await post<unknown>('/api/v1/community/benchmarks', form)
+      setSubmitStatus('success')
+    } catch {
+      setSubmitStatus('error')
+    }
+  }
+
+  return (
+    <motion.section
+      className="bench-community-section"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.1 }}
+    >
+      {/* Section label — matches pattern of other section labels on page */}
+      <div className="bench-community-label">06 — SHARE YOUR RESULTS</div>
+
+      {/* Consent disclosure */}
+      <div className="bench-community-consent">
+        Submitting will send the following to the EverythingLLM community database.
+        No IP address or file paths are collected.
+      </div>
+
+      {/* Preview / edit table */}
+      <div className="bench-community-table">
+        <div className="bench-community-row">
+          <span className="bench-community-key">GPU MODEL</span>
+          <input
+            className="bench-community-input"
+            value={form.gpu_model}
+            placeholder="e.g. RTX 3090"
+            onChange={e => handleChange('gpu_model', e.target.value)}
+          />
+        </div>
+        <div className="bench-community-row">
+          <span className="bench-community-key">VRAM</span>
+          <input
+            className="bench-community-input"
+            type="number"
+            value={form.vram_gb || ''}
+            placeholder="GB"
+            onChange={e => handleChange('vram_gb', parseFloat(e.target.value) || 0)}
+          />
+        </div>
+        <div className="bench-community-row">
+          <span className="bench-community-key">OS</span>
+          <input
+            className="bench-community-input"
+            value={form.os}
+            placeholder="e.g. Ubuntu 22.04"
+            onChange={e => handleChange('os', e.target.value)}
+          />
+        </div>
+        <div className="bench-community-row">
+          <span className="bench-community-key">FRAMEWORK</span>
+          <span className="bench-community-value">{form.framework}</span>
+        </div>
+        <div className="bench-community-row">
+          <span className="bench-community-key">HF MODEL ID</span>
+          <input
+            className="bench-community-input"
+            value={form.hf_model_id}
+            placeholder="e.g. bartowski/Meta-Llama-3-8B-GGUF"
+            onChange={e => handleChange('hf_model_id', e.target.value)}
+          />
+        </div>
+        <div className="bench-community-row">
+          <span className="bench-community-key">QUANT</span>
+          <input
+            className="bench-community-input"
+            value={form.quant}
+            placeholder="e.g. Q4_K_M"
+            onChange={e => handleChange('quant', e.target.value)}
+          />
+        </div>
+        <div className="bench-community-row">
+          <span className="bench-community-key">CONTEXT</span>
+          <span className="bench-community-value">{form.context_window}</span>
+        </div>
+        <div className="bench-community-row">
+          <span className="bench-community-key">BATCH SIZE</span>
+          <span className="bench-community-value">{form.batch_size}</span>
+        </div>
+        <div className="bench-community-row">
+          <span className="bench-community-key">EVAL TPS</span>
+          <span className="bench-community-value" style={{ color: 'var(--blue)' }}>{form.eval_tps}</span>
+        </div>
+        <div className="bench-community-row">
+          <span className="bench-community-key">PROMPT TPS</span>
+          <span className="bench-community-value" style={{ color: 'var(--violet)' }}>{form.prompt_tps}</span>
+        </div>
+        <div className="bench-community-row">
+          <span className="bench-community-key">DATE</span>
+          <span className="bench-community-value">{form.run_date}</span>
+        </div>
+      </div>
+
+      {/* Submit / status */}
+      <AnimatePresence mode="wait">
+        {submitStatus === 'success' ? (
+          <motion.div
+            key="success"
+            className="bench-community-success"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            SUBMITTED — thank you for contributing
+          </motion.div>
+        ) : submitStatus === 'error' ? (
+          <motion.div
+            key="error"
+            className="bench-community-error"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            SUBMISSION FAILED — please try again
+          </motion.div>
+        ) : (
+          <motion.button
+            key="submit-btn"
+            className="bench-community-submit-btn"
+            onClick={handleSubmit}
+            disabled={submitStatus === 'submitting'}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            whileHover={{ scale: submitStatus === 'submitting' ? 1 : 1.02 }}
+            whileTap={{ scale: submitStatus === 'submitting' ? 1 : 0.97 }}
+          >
+            {submitStatus === 'submitting' ? 'SUBMITTING...' : 'SUBMIT TO COMMUNITY'}
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </motion.section>
   )
 }
 
@@ -723,6 +951,19 @@ const BenchmarkerPage: React.FC = () => {
             <AnimatePresence>
               {isCompleted && ticks.length > 0 && (
                 <ResultsCard key="results" ticks={ticks} config={config} />
+              )}
+            </AnimatePresence>
+
+            {/* Community submission section — only after a completed run */}
+            <AnimatePresence>
+              {isCompleted && ticks.length > 0 && (
+                <CommunitySubmissionSection
+                  key="community-submit"
+                  ticks={ticks}
+                  config={config}
+                  selectedModelPath={selectedModel}
+                  models={models}
+                />
               )}
             </AnimatePresence>
 
