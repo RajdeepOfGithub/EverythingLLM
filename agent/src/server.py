@@ -144,9 +144,31 @@ async def _make_emit_tick(session: BenchmarkSession):
     return emit_tick
 
 
+async def _make_emit_speculative_tick(session: BenchmarkSession):
+    async def emit_speculative_tick(
+        proposed: int,
+        accepted: int,
+        acceptance_rate: float,
+        speedup: float,
+    ):
+        await session.broadcast({
+            "event": "speculative_tick",
+            "timestamp": int(time.time()),
+            "payload": {
+                "draft_tokens_proposed": proposed,
+                "draft_tokens_accepted": accepted,
+                "acceptance_rate": round(acceptance_rate, 3),
+                "net_speedup_multiplier": round(speedup, 2),
+            },
+        })
+    return emit_speculative_tick
+
+
 # ---------------------------------------------------------------------------
 # Real benchmark (llama-cpp-python)
 # ---------------------------------------------------------------------------
+
+EmitSpeculativeTickFn = Callable[[int, int, float, float], Awaitable[None]]
 
 BENCHMARK_PROMPT = (
     "Explain the concept of neural network training in detail, "
@@ -207,6 +229,39 @@ async def _run_real_benchmark(
 # Simulated benchmark (fallback — no model file required)
 # ---------------------------------------------------------------------------
 
+async def _run_simulated_speculative(
+    session: BenchmarkSession,
+    config: BenchmarkConfig,
+    emit_tick: EmitTickFn,
+    emit_speculative_tick: EmitSpeculativeTickFn,
+):
+    """
+    Simulates speculative decoding metrics.
+    Acceptance rate ~0.65-0.75, ramps up over first few ticks.
+    Speedup ~1.6-2.1x, correlated with acceptance rate.
+    """
+    base_tps = min(80.0, config.threads * 4.0 + (config.batch_size / 64.0) * 5.0)
+    base_tps = max(5.0, base_tps)
+    base_acceptance = 0.70
+    base_speedup = 1.75
+
+    for i in range(12):
+        ramp = min(1.0, (i + 1) / 4.0)
+        noise = random.uniform(-0.04, 0.04)
+
+        acceptance = min(0.95, base_acceptance * (1 + noise))
+        speedup = base_speedup * ramp * (1 + noise * 0.5)
+        proposed = random.randint(4, 8)
+        accepted = max(0, round(proposed * acceptance))
+
+        eval_tps = base_tps * ramp * (1 + noise)
+        prompt_tps = eval_tps * 2.5 * (1 + random.uniform(-0.03, 0.03))
+
+        await emit_tick(max(0.1, eval_tps), max(0.1, prompt_tps))
+        await emit_speculative_tick(proposed, accepted, acceptance, max(1.0, speedup))
+        await asyncio.sleep(0.5)
+
+
 async def _run_simulated_benchmark(
     session: BenchmarkSession,
     config: BenchmarkConfig,
@@ -246,6 +301,7 @@ async def run_benchmark(session: BenchmarkSession):
 
     emit_status = await _make_emit_status(session)
     emit_tick = await _make_emit_tick(session)
+    emit_speculative_tick = await _make_emit_speculative_tick(session)
 
     try:
         await emit_status("loading_model")
@@ -276,7 +332,11 @@ async def run_benchmark(session: BenchmarkSession):
         await asyncio.sleep(0.5)
         await emit_status("generating")
 
-        if llm is not None:
+        if config.draft_model_path is not None:
+            # Speculative decoding mode — always simulated for now
+            # (real dual-model loading is planned for a future update)
+            await _run_simulated_speculative(session, config, emit_tick, emit_speculative_tick)
+        elif llm is not None:
             await _run_real_benchmark(session, llm, config, emit_tick)
         else:
             await _run_simulated_benchmark(session, config, emit_tick)
