@@ -35,6 +35,50 @@ def get_gpu_info() -> dict:
     except Exception:
         pass
 
+    # Try AMD via rocm-smi
+    try:
+        result = subprocess.run(
+            ["rocm-smi", "--showmeminfo", "vram", "--csv"],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.returncode == 0:
+            lines = [l.strip() for l in result.stdout.strip().split("\n") if l.strip()]
+            # CSV header: device,VRAM Total Memory (B),VRAM Total Used Memory (B),...
+            for line in lines[1:]:
+                parts = [p.strip() for p in line.split(",")]
+                if len(parts) >= 3:
+                    vram_total_bytes = int(parts[1])
+                    vram_used_bytes = int(parts[2])
+                    vram_total_gb = round(vram_total_bytes / (1024 ** 3), 2)
+                    vram_free_gb = round((vram_total_bytes - vram_used_bytes) / (1024 ** 3), 2)
+                    # Get GPU name from product info
+                    name = "AMD GPU"
+                    name_result = subprocess.run(
+                        ["rocm-smi", "--showproductname", "--csv"],
+                        capture_output=True, text=True, timeout=5
+                    )
+                    if name_result.returncode == 0:
+                        for nline in name_result.stdout.strip().split("\n")[1:]:
+                            nparts = [p.strip() for p in nline.split(",")]
+                            # CSV: device,Card Series,Card Model,Card Vendor,Card SKU,...
+                            if len(nparts) >= 4:
+                                series = nparts[1] if nparts[1] not in ("N/A", "") else None
+                                vendor = nparts[3] if len(nparts) > 3 else ""
+                                if series:
+                                    name = series
+                                elif "AMD" in vendor or "ATI" in vendor:
+                                    name = f"AMD GPU ({nparts[2]})" if nparts[2] not in ("N/A", "") else "AMD GPU"
+                                break
+                    return {
+                        "detected": True,
+                        "name": name,
+                        "backend": "vulkan",
+                        "vram_total_gb": vram_total_gb,
+                        "vram_available_gb": vram_free_gb,
+                    }
+    except Exception:
+        pass
+
     # Check for Apple Silicon
     try:
         if platform.system() == "Darwin":
